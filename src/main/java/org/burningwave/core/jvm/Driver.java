@@ -110,10 +110,6 @@ public class Driver implements Closeable {
 		}
 	}
 	
-	public Class<?> defineAnonymousClass(Class<?> outerClass, byte[] byteCode, Object[] var3) {
-		return unsafe.defineAnonymousClass(outerClass, byteCode, var3);
-	}
-	
 	public Package retrieveLoadedPackage(ClassLoader classLoader, Object packageToFind, String packageName) throws Throwable {
 		return packageRetriever.apply(classLoader, packageToFind, packageName);
 	}
@@ -398,6 +394,8 @@ public class Driver implements Closeable {
 			try (Initializer initializer =
 					JVMInfo.getVersion() > 8 ?
 						JVMInfo.getVersion() > 13 ?
+								JVMInfo.getVersion() > 16 ?
+									new ForJava17(driver):
 								new ForJava14(driver):
 							new ForJava9(driver):
 						new ForJava8(driver)) {
@@ -530,7 +528,11 @@ public class Driver implements Closeable {
 			    	
 			    }
 			}
-
+			
+			Class<?> defineHookClass(Class<?> clientClass, byte[] byteCode) {
+				return driver.unsafe.defineAnonymousClass(clientClass, byteCode, null);
+			}
+			
 			void initConsulterRetriever() {
 				try (
 					InputStream inputStream =
@@ -539,8 +541,8 @@ public class Driver implements Closeable {
 					ByteBufferOutputStream bBOS = new ByteBufferOutputStream()
 				) {
 					Streams.copy(inputStream, bBOS);
-					Class<?> methodHandleWrapperClass = driver.defineAnonymousClass(
-						Class.class, bBOS.toByteArray(), null
+					Class<?> methodHandleWrapperClass = defineHookClass(
+						Class.class, bBOS.toByteArray()
 					);
 					MethodHandles.Lookup consulter = MethodHandles.lookup();
 					MethodHandle methodHandle = consulter.findStatic(
@@ -568,8 +570,8 @@ public class Driver implements Closeable {
 					ByteBufferOutputStream bBOS = new ByteBufferOutputStream()
 				) {
 					Streams.copy(inputStream, bBOS);
-					Class<?> methodHandleWrapperClass = driver.defineAnonymousClass(
-						AccessibleObject.class, bBOS.toByteArray(), null
+					Class<?> methodHandleWrapperClass = defineHookClass(
+						AccessibleObject.class, bBOS.toByteArray()
 					);
 					driver.unsafe.putObject(methodHandleWrapperClass,
 						driver.unsafe.staticFieldOffset(methodHandleWrapperClass.getDeclaredField("methodHandleRetriever")),
@@ -640,8 +642,8 @@ public class Driver implements Closeable {
 					ByteBufferOutputStream bBOS = new ByteBufferOutputStream()
 				) {
 					Streams.copy(inputStream, bBOS);
-					driver.classLoaderDelegateClass = driver.defineAnonymousClass(
-						driver.builtinClassLoaderClass, bBOS.toByteArray(), null
+					driver.classLoaderDelegateClass = defineHookClass(
+						driver.builtinClassLoaderClass, bBOS.toByteArray()
 					);
 				} catch (Throwable exc) {
 					ManagedLoggersRepository.logError(getClass()::getName, "Could not initialize class loader delegate class");
@@ -704,7 +706,20 @@ public class Driver implements Closeable {
 					}
 				};
 			}
-		}		
+		}
+		
+		private static class ForJava17 extends ForJava14 {
+			
+			ForJava17(Driver driver) {
+				super(driver);
+			}
+			
+			@Override
+			Class<?> defineHookClass(Class<?> clientClass, byte[] byteCode) {
+				throw new RuntimeException("Java version not supported");
+			}
+		}
+	
 		
 	}
 

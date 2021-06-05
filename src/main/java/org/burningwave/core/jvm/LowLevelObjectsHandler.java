@@ -92,7 +92,8 @@ public class LowLevelObjectsHandler implements Closeable, ManagedLogger, Members
 	}
 	
 	public Class<?> defineAnonymousClass(Class<?> outerClass, byte[] byteCode, Object[] var3) {
-		return driver.defineAnonymousClass(outerClass, byteCode, var3);
+		return null;
+		//return driver.defineAnonymousClass(outerClass, byteCode, var3);
 	}
 	
 	public Package retrieveLoadedPackage(ClassLoader classLoader, Object packageToFind, String packageName) throws Throwable {
