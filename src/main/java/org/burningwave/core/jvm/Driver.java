@@ -739,6 +739,8 @@ public class Driver implements Closeable {
 		
 		private static class ForJava17 extends ForJava14 {
 			
+			MethodHandle defineClassMethodHandle;
+			
 			ForJava17(Driver driver) {
 				super(driver);
 			}
@@ -746,16 +748,24 @@ public class Driver implements Closeable {
 			@Override
 			Lookup createConsulter() {
 				MethodHandles.Lookup lookup =  MethodHandles.lookup();
+				driver.unsafe.putInt(lookup, 12L, -1);
 				return lookup;
 			}
 			
 			@Override
 			void initDefineHookClassFunction() {
-				Executor.run(() -> { 
+				Executor.run(() -> {
+					MethodHandles.Lookup mainLookup = createConsulter();
+					defineClassMethodHandle = mainLookup.findSpecial(
+						MethodHandles.Lookup.class,
+						"defineClass",
+						MethodType.methodType(Class.class, byte[].class),
+						MethodHandles.Lookup.class
+					);
 					defineHookClassFunction = (clientClass, byteCode) -> {
-						MethodHandles.Lookup lookup = (MethodHandles.Lookup)privateLookupInMethodHandle.invoke(clientClass, createConsulter());
+						MethodHandles.Lookup lookup = (MethodHandles.Lookup)privateLookupInMethodHandle.invoke(clientClass, mainLookup);
 						try {
-							return lookup.defineClass(byteCode);
+							return (Class<?>) defineClassMethodHandle.invoke(lookup, byteCode);
 						} catch (LinkageError exc) {
 							return JavaClass.extractByUsing(ByteBuffer.wrap(byteCode), javaClass ->
 								Class.forName(javaClass.getName())
