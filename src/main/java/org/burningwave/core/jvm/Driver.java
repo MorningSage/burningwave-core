@@ -45,6 +45,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -52,6 +53,9 @@ import java.util.function.Function;
 
 import org.burningwave.core.Closeable;
 import org.burningwave.core.Component;
+import org.burningwave.core.classes.JavaClass;
+import org.burningwave.core.function.Executor;
+import org.burningwave.core.function.ThrowingBiFunction;
 import org.burningwave.core.function.TriFunction;
 import org.burningwave.core.io.ByteBufferOutputStream;
 
@@ -512,6 +516,9 @@ public class Driver implements Closeable {
 		
 		private static class ForJava9 extends Initializer {
 			
+			MethodHandle privateLookupInMethodHandle;
+			ThrowingBiFunction<Class<?>, byte[], Class<?>, ? extends Throwable> defineHookClassFunction;
+			
 			ForJava9(Driver driver) {
 				super(driver);
 				try {
@@ -524,13 +531,38 @@ public class Driver implements Closeable {
 			        driver.illegalAccessLoggerEnabler = () ->
 			        	driver.unsafe.putObjectVolatile(cls, loggerFieldOffset, illegalAccessLogger);
 			        driver.disableIllegalAccessLogger();
-			    } catch (Throwable e) {
+			    } catch (Throwable exc) {
 			    	
 			    }
 			}
 			
+			void initDefineHookClassFunction() {
+				Executor.run(() -> { 
+					MethodHandle defineHookClassMethodHandle = ((MethodHandles.Lookup)privateLookupInMethodHandle.invoke(driver.unsafe.getClass(), createConsulter())).findSpecial(
+						driver.unsafe.getClass(),
+						"defineAnonymousClass",
+						MethodType.methodType(Class.class, Class.class, byte[].class, Object[].class),
+						driver.unsafe.getClass()
+					);
+					defineHookClassFunction = (clientClass, byteCode) -> (Class<?>) defineHookClassMethodHandle.invoke(driver.unsafe, clientClass, byteCode, null);
+				});
+			}
+			
+			void initPrivateLookupInMethodHandle() {
+				Executor.run(() -> { 
+					privateLookupInMethodHandle = createConsulter().findStatic(
+						MethodHandles.class, "privateLookupIn",
+						MethodType.methodType(MethodHandles.Lookup.class, Class.class, MethodHandles.Lookup.class)
+					);
+				});
+			}
+
+			Lookup createConsulter() {
+				return MethodHandles.lookup();
+			}
+			
 			Class<?> defineHookClass(Class<?> clientClass, byte[] byteCode) {
-				return driver.unsafe.defineAnonymousClass(clientClass, byteCode, null);
+				return Executor.get(() ->defineHookClassFunction.apply(clientClass, byteCode));
 			}
 			
 			void initConsulterRetriever() {
@@ -540,18 +572,15 @@ public class Driver implements Closeable {
 					);
 					ByteBufferOutputStream bBOS = new ByteBufferOutputStream()
 				) {
+					initPrivateLookupInMethodHandle();
+					initDefineHookClassFunction();
 					Streams.copy(inputStream, bBOS);
 					Class<?> methodHandleWrapperClass = defineHookClass(
 						Class.class, bBOS.toByteArray()
 					);
-					MethodHandles.Lookup consulter = MethodHandles.lookup();
-					MethodHandle methodHandle = consulter.findStatic(
-						MethodHandles.class, "privateLookupIn",
-						MethodType.methodType(MethodHandles.Lookup.class, Class.class, MethodHandles.Lookup.class)
-					);
 					driver.unsafe.putObject(methodHandleWrapperClass,
 						driver.unsafe.staticFieldOffset(methodHandleWrapperClass.getDeclaredField("consulterRetriever")),
-						methodHandle
+						privateLookupInMethodHandle
 					);					
 					driver.consulterRetriever =
 						(Function<Class<?>, MethodHandles.Lookup>)driver.unsafe.allocateInstance(methodHandleWrapperClass);
@@ -715,8 +744,26 @@ public class Driver implements Closeable {
 			}
 			
 			@Override
-			Class<?> defineHookClass(Class<?> clientClass, byte[] byteCode) {
-				throw new RuntimeException("Java version not supported");
+			Lookup createConsulter() {
+				MethodHandles.Lookup lookup =  MethodHandles.lookup();
+				return lookup;
+			}
+			
+			@Override
+			void initDefineHookClassFunction() {
+				Executor.run(() -> { 
+					defineHookClassFunction = (clientClass, byteCode) -> {
+						MethodHandles.Lookup lookup = (MethodHandles.Lookup)privateLookupInMethodHandle.invoke(clientClass, createConsulter());
+						try {
+							return lookup.defineClass(byteCode);
+						} catch (LinkageError exc) {
+							return JavaClass.extractByUsing(ByteBuffer.wrap(byteCode), javaClass ->
+								Class.forName(javaClass.getName())
+							);
+						}
+						
+					};
+				});
 			}
 		}
 	
