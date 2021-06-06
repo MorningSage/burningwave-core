@@ -37,11 +37,16 @@ import java.util.function.Function;
 @SuppressWarnings("unchecked")
 public class ConsulterRetrieverForJDK9 implements Function<Class<?>, MethodHandles.Lookup> {
 	private static MethodHandle consulterRetriever;
+	private static MethodHandles.Lookup mainConsulter;
+	
+	static {
+		mainConsulter = MethodHandles.lookup();
+	}
 	
 	@Override
 	public Lookup apply(Class<?> cls) {
 		try {
-			return (MethodHandles.Lookup)consulterRetriever.invoke(cls, MethodHandles.lookup());
+			return (MethodHandles.Lookup)consulterRetriever.invoke(cls, mainConsulter);
 		} catch (Throwable exc) {
 			return throwExceptionWithReturn(exc);
 		}
