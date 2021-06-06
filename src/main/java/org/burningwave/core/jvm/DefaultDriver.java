@@ -39,6 +39,7 @@ import java.io.InputStream;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodHandles.Lookup;
+import java.lang.invoke.MethodHandles.Lookup.ClassOption;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Constructor;
@@ -51,7 +52,6 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-import org.burningwave.core.Closeable;
 import org.burningwave.core.Component;
 import org.burningwave.core.classes.JavaClass;
 import org.burningwave.core.function.Executor;
@@ -774,7 +774,7 @@ class DefaultDriver extends Driver {
 			
 			@Override
 			void initDefineHookClassFunction() {
-				Executor.run(() -> {;
+				Executor.run(() -> {
 					defineClassMethodHandle = mainConsulter.findSpecial(
 						MethodHandles.Lookup.class,
 						"defineClass",
