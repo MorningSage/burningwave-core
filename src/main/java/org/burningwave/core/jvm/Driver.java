@@ -518,6 +518,7 @@ public class Driver implements Closeable {
 			
 			MethodHandle privateLookupInMethodHandle;
 			ThrowingBiFunction<Class<?>, byte[], Class<?>, ? extends Throwable> defineHookClassFunction;
+			MethodHandles.Lookup mainConsulter;
 			
 			ForJava9(Driver driver) {
 				super(driver);
@@ -538,7 +539,7 @@ public class Driver implements Closeable {
 			
 			void initDefineHookClassFunction() {
 				Executor.run(() -> { 
-					MethodHandle defineHookClassMethodHandle = ((MethodHandles.Lookup)privateLookupInMethodHandle.invoke(driver.unsafe.getClass(), createConsulter())).findSpecial(
+					MethodHandle defineHookClassMethodHandle = ((MethodHandles.Lookup)privateLookupInMethodHandle.invoke(driver.unsafe.getClass(), mainConsulter)).findSpecial(
 						driver.unsafe.getClass(),
 						"defineAnonymousClass",
 						MethodType.methodType(Class.class, Class.class, byte[].class, Object[].class),
@@ -550,15 +551,15 @@ public class Driver implements Closeable {
 			
 			void initPrivateLookupInMethodHandle() {
 				Executor.run(() -> { 
-					privateLookupInMethodHandle = createConsulter().findStatic(
+					privateLookupInMethodHandle = mainConsulter.findStatic(
 						MethodHandles.class, "privateLookupIn",
 						MethodType.methodType(MethodHandles.Lookup.class, Class.class, MethodHandles.Lookup.class)
 					);
 				});
 			}
 
-			Lookup createConsulter() {
-				return MethodHandles.lookup();
+			void initMainConsulter() {
+				mainConsulter = MethodHandles.lookup();
 			}
 			
 			Class<?> defineHookClass(Class<?> clientClass, byte[] byteCode) {
@@ -572,6 +573,7 @@ public class Driver implements Closeable {
 					);
 					ByteBufferOutputStream bBOS = new ByteBufferOutputStream()
 				) {
+					initMainConsulter();
 					initPrivateLookupInMethodHandle();
 					initDefineHookClassFunction();
 					Streams.copy(inputStream, bBOS);
@@ -746,23 +748,21 @@ public class Driver implements Closeable {
 			}
 			
 			@Override
-			Lookup createConsulter() {
-				MethodHandles.Lookup lookup =  MethodHandles.lookup();
-				return lookup;
+			void initMainConsulter() {
+				super.initMainConsulter();
 			}
 			
 			@Override
 			void initDefineHookClassFunction() {
-				Executor.run(() -> {
-					MethodHandles.Lookup mainLookup = createConsulter();
-					defineClassMethodHandle = mainLookup.findSpecial(
+				Executor.run(() -> {;
+					defineClassMethodHandle = mainConsulter.findSpecial(
 						MethodHandles.Lookup.class,
 						"defineClass",
 						MethodType.methodType(Class.class, byte[].class),
 						MethodHandles.Lookup.class
 					);
 					defineHookClassFunction = (clientClass, byteCode) -> {
-						MethodHandles.Lookup lookup = (MethodHandles.Lookup)privateLookupInMethodHandle.invoke(clientClass, mainLookup);
+						MethodHandles.Lookup lookup = (MethodHandles.Lookup)privateLookupInMethodHandle.invoke(clientClass, mainConsulter);
 						try {
 							return (Class<?>) defineClassMethodHandle.invoke(lookup, byteCode);
 						} catch (LinkageError exc) {
