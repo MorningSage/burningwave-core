@@ -29,33 +29,24 @@
 package org.burningwave.core.jvm;
 
 import static org.burningwave.core.assembler.StaticComponentContainer.BackgroundExecutor;
-import static org.burningwave.core.assembler.StaticComponentContainer.Classes;
 import static org.burningwave.core.assembler.StaticComponentContainer.Constructors;
 import static org.burningwave.core.assembler.StaticComponentContainer.Fields;
-import static org.burningwave.core.assembler.StaticComponentContainer.JVMInfo;
 import static org.burningwave.core.assembler.StaticComponentContainer.LowLevelObjectsHandler;
 import static org.burningwave.core.assembler.StaticComponentContainer.ManagedLoggersRepository;
 import static org.burningwave.core.assembler.StaticComponentContainer.Members;
 import static org.burningwave.core.assembler.StaticComponentContainer.Methods;
-import static org.burningwave.core.assembler.StaticComponentContainer.Resources;
-import static org.burningwave.core.assembler.StaticComponentContainer.Streams;
 import static org.burningwave.core.assembler.StaticComponentContainer.Throwables;
 
-import java.io.InputStream;
-import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodType;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
-import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 import org.burningwave.core.Closeable;
@@ -66,10 +57,6 @@ import org.burningwave.core.classes.MembersRetriever;
 import org.burningwave.core.classes.MemoryClassLoader;
 import org.burningwave.core.classes.MethodCriteria;
 import org.burningwave.core.function.Executor;
-import org.burningwave.core.function.TriFunction;
-import org.burningwave.core.io.ByteBufferOutputStream;
-
-import sun.misc.Unsafe;
 
 @SuppressWarnings({"all"})
 public class LowLevelObjectsHandler implements Closeable, ManagedLogger, MembersRetriever {
@@ -80,20 +67,15 @@ public class LowLevelObjectsHandler implements Closeable, ManagedLogger, Members
 	Method[] emptyMethodsArray;
 	Constructor<?>[] emptyConstructorsArray;
 
-	private LowLevelObjectsHandler() {
+	private LowLevelObjectsHandler(String driverClassName) {
 		emtpyFieldsArray = new Field[]{};
 		emptyMethodsArray = new Method[]{};
 		emptyConstructorsArray = new Constructor<?>[]{};
-		driver = Driver.create();
+		driver = Executor.get(() -> (Driver)this.getClass().getClassLoader().loadClass(driverClassName).newInstance());
 	}
 	
-	public static LowLevelObjectsHandler create() {
-		return new LowLevelObjectsHandler();
-	}
-	
-	public Class<?> defineAnonymousClass(Class<?> outerClass, byte[] byteCode, Object[] var3) {
-		return null;
-		//return driver.defineAnonymousClass(outerClass, byteCode, var3);
+	public static LowLevelObjectsHandler create(String driverClassName) {
+		return new LowLevelObjectsHandler(driverClassName);
 	}
 	
 	public Package retrieveLoadedPackage(ClassLoader classLoader, Object packageToFind, String packageName) throws Throwable {

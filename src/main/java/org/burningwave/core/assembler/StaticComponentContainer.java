@@ -58,6 +58,7 @@ public class StaticComponentContainer {
 			private static final String BACKGROUND_EXECUTOR_ALL_TASKS_MONITORING_LOGGER_ENABLED = "background-executor.all-tasks-monitoring.logger.enabled";
 			private static final String BACKGROUND_EXECUTOR_ALL_TASKS_MONITORING_INTERVAL = "background-executor.all-tasks-monitoring.interval";
 			private static final String BACKGROUND_EXECUTOR_ALL_TASKS_MONITORING_PROBABLE_DEAD_LOCKED_TASKS_HANDLING_POLICY = "background-executor.all-tasks-monitoring.probable-dead-locked-tasks-handling.policy";
+			private static final String LOW_LEVEL_OBJECTS_HANDLER_DRIVER = "low-level-objects-handler.driver";
 			private static final String SYNCHRONIZER_ALL_THREADS_MONITORING_ENABLED = "synchronizer.all-threads-monitoring.enabled";
 			private static final String SYNCHRONIZER_ALL_THREADS_MONITORING_INTERVAL = "synchronizer.all-threads-monitoring.interval";	
 		}
@@ -114,6 +115,8 @@ public class StaticComponentContainer {
 				Key.BACKGROUND_EXECUTOR_ALL_TASKS_MONITORING_LOGGER_ENABLED,
 				false
 			);
+			
+			defaultValues.put(Key.LOW_LEVEL_OBJECTS_HANDLER_DRIVER, "org.burningwave.core.jvm.DefaultDriver");
 			
 			DEFAULT_VALUES = Collections.unmodifiableMap(defaultValues);
 		}
@@ -292,7 +295,11 @@ public class StaticComponentContainer {
 			ByteBufferHandler = org.burningwave.core.jvm.LowLevelObjectsHandler.ByteBufferHandler.create();
 			Streams = org.burningwave.core.io.Streams.create(GlobalProperties);
 			synchronized (org.burningwave.core.jvm.LowLevelObjectsHandler.class) {
-				LowLevelObjectsHandler = org.burningwave.core.jvm.LowLevelObjectsHandler.create();
+				LowLevelObjectsHandler = org.burningwave.core.jvm.LowLevelObjectsHandler.create(
+					GlobalProperties.resolveValue(
+						Configuration.Key.LOW_LEVEL_OBJECTS_HANDLER_DRIVER
+					)
+				);
 				org.burningwave.core.jvm.LowLevelObjectsHandler.class.notifyAll();
 			}
 			Classes = org.burningwave.core.classes.Classes.create();
