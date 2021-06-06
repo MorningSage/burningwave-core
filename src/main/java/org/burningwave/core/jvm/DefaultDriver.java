@@ -60,9 +60,7 @@ import org.burningwave.core.io.ByteBufferOutputStream;
 
 import sun.misc.Unsafe;
 
-/**
- * @since 8.12.4
- */
+
 @SuppressWarnings("all")
 public class DefaultDriver extends Driver {
 	

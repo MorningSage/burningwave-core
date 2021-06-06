@@ -38,6 +38,9 @@ import java.util.Map;
 
 import org.burningwave.core.Closeable;
 
+/**
+ * @since 8.12.4
+ */
 public abstract class Driver implements Closeable {
 
 	protected abstract void setFieldValue(Object target, Field field, Object value);
