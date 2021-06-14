@@ -65,9 +65,6 @@ import sun.misc.Unsafe;
 public class DefaultDriver extends Driver {
 	
 	Unsafe unsafe;
-	Runnable illegalAccessLoggerEnabler;
-	Runnable illegalAccessLoggerDisabler;
-	
 	MethodHandle getDeclaredFieldsRetriever;
 	MethodHandle getDeclaredMethodsRetriever;
 	MethodHandle getDeclaredConstructorsRetriever;
@@ -96,20 +93,6 @@ public class DefaultDriver extends Driver {
 					new Initializer.ForJava14(this):
 				new Initializer.ForJava9(this):
 			new Initializer.ForJava8(this));
-	}
-	
-	@Override
-	protected void disableIllegalAccessLogger() {
-	    if (illegalAccessLoggerDisabler != null) {
-	    	illegalAccessLoggerDisabler.run();
-	    }
-	}
-	
-	@Override
-	protected void enableIllegalAccessLogger() {
-	    if (illegalAccessLoggerEnabler != null) {
-	    	illegalAccessLoggerEnabler.run();
-	    }
 	}
 	
 	@Override
@@ -349,8 +332,6 @@ public class DefaultDriver extends Driver {
 		loadedPackagesMapMemoryOffset = null;
 		loadedClassesVectorMemoryOffset = null;
 		unsafe = null;
-		illegalAccessLoggerEnabler = null;
-		illegalAccessLoggerDisabler = null;
 		getDeclaredFieldsRetriever = null;
 		getDeclaredMethodsRetriever = null;
 		getDeclaredConstructorsRetriever = null;
@@ -536,19 +517,6 @@ public class DefaultDriver extends Driver {
 			
 			protected ForJava9(DefaultDriver driver) {
 				super(driver);
-				try {
-			        Class<?> cls = Class.forName("jdk.internal.module.IllegalAccessLogger");
-			        Field logger = cls.getDeclaredField("logger");
-			        final long loggerFieldOffset = driver.unsafe.staticFieldOffset(logger);
-			        final Object illegalAccessLogger = driver.unsafe.getObjectVolatile(cls, loggerFieldOffset);
-			        driver.illegalAccessLoggerDisabler = () ->
-			        	driver.unsafe.putObjectVolatile(cls, loggerFieldOffset, null);
-			        driver.illegalAccessLoggerEnabler = () ->
-			        	driver.unsafe.putObjectVolatile(cls, loggerFieldOffset, illegalAccessLogger);
-			        driver.disableIllegalAccessLogger();
-			    } catch (Throwable exc) {
-			    	
-			    }
 			}
 			
 			protected void initDefineHookClassFunction() {
