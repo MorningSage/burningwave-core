@@ -78,10 +78,6 @@ public abstract class Driver implements Closeable {
 	protected abstract Class<?> defineHookClass(Class<?> clientClass, byte[] byteCode);
 
 	protected abstract void setAccessible(AccessibleObject object, boolean flag);
-
-	protected abstract void enableIllegalAccessLogger();
-
-	protected abstract void disableIllegalAccessLogger();
 	
 	public abstract void close();
 
