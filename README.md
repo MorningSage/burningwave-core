@@ -1042,6 +1042,9 @@ iterable-object-helper.default-values-separator=\
 	;
 iterable-object-helper.parallel-iteration.applicability.max-runtime-threads-count-threshold=\
 	autodetect
+#It is possible to use a custom JVM driver which extends the abstract class org.burningwave.core.jvm.Driver
+low-level-objects-handler.driver=\
+	org.burningwave.core.jvm.DefaultDriver
 #With this value the library will search if org.slf4j.Logger is present and, in this case,
 #the SLF4JManagedLoggerRepository will be instantiated, otherwise the SimpleManagedLoggerRepository will be instantiated
 managed-logger.repository=\
