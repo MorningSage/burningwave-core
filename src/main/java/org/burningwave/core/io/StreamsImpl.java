@@ -15,7 +15,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.math.BigDecimal;
-import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -145,39 +144,44 @@ class StreamsImpl implements Streams, Identifiable, Properties.Listener, Managed
 			return Throwables.throwException(exc);
 		}
 	}
-
+	
 	@Override
-	public ByteBuffer toByteBuffer(InputStream inputStream) {
-		/*try (ByteBufferOutputStream outputStream = new ByteBufferOutputStream()) {
+	public ByteBuffer toByteBuffer(InputStream inputStream, int size) {
+		try (ByteBufferOutputStream outputStream = new ByteBufferOutputStream(size > -1? size : defaultBufferSize)) {
 			copy(inputStream, outputStream);
 			return outputStream.toByteBuffer();
-		}*/
-		ByteBuffer byteBuffer = null;
+		}
+		/*ByteBuffer byteBuffer = null;
 		try {
-			byteBuffer = defaultByteBufferAllocator.apply(defaultBufferSize);
-			byte[] tempBuffer = new byte[defaultBufferSize];
-			int initialPosition = ByteBufferHandler.position(byteBuffer);
-			int reallocCount = 0;
-			int reads = 0;
-			while (-1 != (reads = inputStream.read(tempBuffer))) {
-				try {
-					byteBuffer.put(tempBuffer, 0, reads);
-				} catch (BufferOverflowException exc) {
-					int size = defaultBufferSize + (++reallocCount * defaultBufferSize);
-					ByteBuffer temp = defaultByteBufferAllocator.apply(size);
+			int bufferSize = size > -1? size : this.defaultBufferSize;
+			byte[] tempBuffer = new byte[bufferSize];
+			int read = 0;
+			if (bufferSize != 0 && -1 != (read = inputStream.read(tempBuffer))) {
+				byteBuffer = defaultByteBufferAllocator.apply(bufferSize);
+				byteBuffer.put(tempBuffer, 0, read);
+				int reallocCount = 0;
+				while (-1 != (read = inputStream.read(tempBuffer))) {
+					ByteBuffer temp = defaultByteBufferAllocator.apply(read + (++reallocCount * bufferSize));
 					int limit = ByteBufferHandler.limit(byteBuffer);
 					ByteBufferHandler.flip(byteBuffer);
 					temp.put(byteBuffer);
 			        ByteBufferHandler.limit(byteBuffer, limit);
-			        ByteBufferHandler.position(byteBuffer, initialPosition);
+			        ByteBufferHandler.position(byteBuffer, 0);
 			        byteBuffer = temp;
-			        byteBuffer.put(tempBuffer, 0, reads);
+					byteBuffer.put(tempBuffer, 0, read);
 				}
+			} else {
+				byteBuffer = defaultByteBufferAllocator.apply(0);
 			}
 		} catch (Throwable exc) {
 			return Throwables.throwException(exc);
 		}
-		return shareContent(byteBuffer);
+		return shareContent(byteBuffer);*/
+	}
+	
+	@Override
+	public ByteBuffer toByteBuffer(InputStream inputStream) {
+		return toByteBuffer(inputStream, -1);
 	}
 	
 	@Override

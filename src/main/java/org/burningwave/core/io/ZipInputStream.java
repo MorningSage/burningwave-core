@@ -263,7 +263,7 @@ class ZipInputStream extends java.util.zip.ZipInputStream implements IterableZip
 							Throwables.throwException("{} and his ZipInputStream are not aligned", Attached.class.getSimpleName());
 						}
 						try {
-						    return Streams.toByteBuffer(zipInputStream);
+						    return Streams.toByteBuffer(zipInputStream, (int)super.getSize());
 						} catch (Throwable exc) {
 							ManagedLoggersRepository.logError(getClass()::getName, "Could not load content of {} of {}", exc, getName(), zipInputStream.getAbsolutePath());
 							return null;

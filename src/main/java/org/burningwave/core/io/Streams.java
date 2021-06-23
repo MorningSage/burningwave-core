@@ -86,7 +86,9 @@ public interface Streams {
 	public boolean is(File file, Predicate<Integer> predicate) throws IOException;
 
 	public byte[] toByteArray(InputStream inputStream);
-
+	
+	public ByteBuffer toByteBuffer(InputStream inputStream, int size);
+	
 	public ByteBuffer toByteBuffer(InputStream inputStream);
 
 	public StringBuffer getAsStringBuffer(InputStream inputStream);
