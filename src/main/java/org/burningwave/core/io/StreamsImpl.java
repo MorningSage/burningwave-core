@@ -4,8 +4,10 @@ import static org.burningwave.core.assembler.StaticComponentContainer.ByteBuffer
 import static org.burningwave.core.assembler.StaticComponentContainer.IterableObjectHelper;
 import static org.burningwave.core.assembler.StaticComponentContainer.ManagedLoggersRepository;
 import static org.burningwave.core.assembler.StaticComponentContainer.Synchronizer;
+import static org.burningwave.core.assembler.StaticComponentContainer.Throwables;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,6 +15,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.math.BigDecimal;
+import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -135,18 +138,41 @@ class StreamsImpl implements Streams, Identifiable, Properties.Listener, Managed
 
 	@Override
 	public byte[] toByteArray(InputStream inputStream) {
-		try (ByteBufferOutputStream output = new ByteBufferOutputStream()) {
-			copy(inputStream, output);
-			return output.toByteArray();
+		try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream(defaultBufferSize)) {
+			copy(inputStream, outputStream);
+			return outputStream.toByteArray();
+		} catch (Throwable exc) {
+			return Throwables.throwException(exc);
 		}
 	}
 
 	@Override
 	public ByteBuffer toByteBuffer(InputStream inputStream) {
-		try (ByteBufferOutputStream output = new ByteBufferOutputStream()) {
-			copy(inputStream, output);
-			return output.toByteBuffer();
+		ByteBuffer byteBuffer = null;
+		try {
+			byteBuffer = defaultByteBufferAllocator.apply(defaultBufferSize);
+			int initialPosition = ByteBufferHandler.position(byteBuffer);
+			int currentByte;
+			int reallocCount = 0;
+			while (-1 != (currentByte = inputStream.read())) {
+				try {
+					byteBuffer.put((byte)currentByte);
+				} catch (BufferOverflowException exc) {
+					int size = defaultBufferSize + (++reallocCount * defaultBufferSize);
+					ByteBuffer temp = defaultByteBufferAllocator.apply(size);
+					int limit = ByteBufferHandler.limit(byteBuffer);
+					ByteBufferHandler.flip(byteBuffer);
+					temp.put(byteBuffer);
+			        ByteBufferHandler.limit(byteBuffer, limit);
+			        ByteBufferHandler.position(byteBuffer, initialPosition);
+			        byteBuffer = temp;
+			        byteBuffer.put((byte)currentByte);
+				}
+			}
+		} catch (Throwable exc) {
+			return Throwables.throwException(exc);
 		}
+		return shareContent(byteBuffer);
 	}
 	
 	@Override
@@ -168,7 +194,7 @@ class StreamsImpl implements Streams, Identifiable, Properties.Listener, Managed
 		});
 	}
 	
-	@Override
+	/*@Override*/
 	public long copy(InputStream input, OutputStream output) {
 		return Executor.get(() -> {
 			byte[] buffer = new byte[defaultBufferSize];

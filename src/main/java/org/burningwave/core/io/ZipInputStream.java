@@ -246,15 +246,6 @@ class ZipInputStream extends java.util.zip.ZipInputStream implements IterableZip
 				return absolutePath = Paths.clean(zipInputStream.getAbsolutePath() + "/" + getName());
 			}
 			
-			private ByteBufferOutputStream createDataBytesContainer() {
-				int currEntrySize = (int)super.getSize();
-				if (currEntrySize != -1) {
-					return new ByteBufferOutputStream(currEntrySize);
-				} else {
-					return new ByteBufferOutputStream();
-				}
-			}
-			
 			@Override
 			public long getSize() {
 				long size = super.getSize();
@@ -271,9 +262,8 @@ class ZipInputStream extends java.util.zip.ZipInputStream implements IterableZip
 						if (zipInputStream.getCurrentZipEntry() != this) {
 							Throwables.throwException("{} and his ZipInputStream are not aligned", Attached.class.getSimpleName());
 						}
-						try (ByteBufferOutputStream bBOS = createDataBytesContainer()) {
-							Streams.copy(zipInputStream, bBOS);
-						    return bBOS.toByteBuffer();
+						try {
+						    return Streams.toByteBuffer(zipInputStream);
 						} catch (Throwable exc) {
 							ManagedLoggersRepository.logError(getClass()::getName, "Could not load content of {} of {}", exc, getName(), zipInputStream.getAbsolutePath());
 							return null;

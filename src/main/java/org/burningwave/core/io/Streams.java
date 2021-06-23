@@ -31,7 +31,6 @@ package org.burningwave.core.io;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.HashMap;
@@ -91,7 +90,7 @@ public interface Streams {
 
 	public StringBuffer getAsStringBuffer(InputStream inputStream);
 
-	public long copy(InputStream input, OutputStream output);
+	//public long copy(InputStream input, OutputStream output);
 
 	public byte[] toByteArray(ByteBuffer byteBuffer);
 

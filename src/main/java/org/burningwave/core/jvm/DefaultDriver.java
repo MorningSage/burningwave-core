@@ -56,7 +56,6 @@ import org.burningwave.core.classes.JavaClass;
 import org.burningwave.core.function.Executor;
 import org.burningwave.core.function.ThrowingBiFunction;
 import org.burningwave.core.function.TriFunction;
-import org.burningwave.core.io.ByteBufferOutputStream;
 
 import sun.misc.Unsafe;
 
@@ -550,15 +549,13 @@ public class DefaultDriver extends Driver {
 					InputStream inputStream =
 						Resources.getAsInputStream(this.getClass().getClassLoader(), this.getClass().getPackage().getName().replace(".", "/") + "/ConsulterRetrieverForJDK9.bwc"
 					);
-					ByteBufferOutputStream bBOS = new ByteBufferOutputStream()
 				) {
 					Unsafe unsafe = driver.unsafe;
 					initMainConsulter();
 					initPrivateLookupInMethodHandle();
 					initDefineHookClassFunction();
-					Streams.copy(inputStream, bBOS);
 					Class<?> methodHandleWrapperClass = driver.defineHookClass(
-						Class.class, bBOS.toByteArray()
+						Class.class, Streams.toByteArray(inputStream)
 					);
 					unsafe.putObject(methodHandleWrapperClass,
 						unsafe.staticFieldOffset(methodHandleWrapperClass.getDeclaredField("consulterRetriever")),
@@ -578,12 +575,10 @@ public class DefaultDriver extends Driver {
 					InputStream inputStream =
 						Resources.getAsInputStream(this.getClass().getClassLoader(), this.getClass().getPackage().getName().replace(".", "/") + "/AccessibleSetterInvokerForJDK9.bwc"
 					);
-					ByteBufferOutputStream bBOS = new ByteBufferOutputStream()
 				) {	
 					Unsafe unsafe = driver.unsafe;
-					Streams.copy(inputStream, bBOS);
 					Class<?> methodHandleWrapperClass = driver.defineHookClass(
-						AccessibleObject.class, bBOS.toByteArray()
+						AccessibleObject.class, Streams.toByteArray(inputStream)
 					);
 					unsafe.putObject(methodHandleWrapperClass,
 						unsafe.staticFieldOffset(methodHandleWrapperClass.getDeclaredField("methodHandleRetriever")),
@@ -651,11 +646,9 @@ public class DefaultDriver extends Driver {
 					InputStream inputStream =
 						Resources.getAsInputStream(this.getClass().getClassLoader(), this.getClass().getPackage().getName().replace(".", "/") + "/ClassLoaderDelegateForJDK9.bwc"
 					);
-					ByteBufferOutputStream bBOS = new ByteBufferOutputStream()
 				) {
-					Streams.copy(inputStream, bBOS);
 					driver.classLoaderDelegateClass = driver.defineHookClass(
-						driver.builtinClassLoaderClass, bBOS.toByteArray()
+						driver.builtinClassLoaderClass, Streams.toByteArray(inputStream)
 					);
 				} catch (Throwable exc) {
 					ManagedLoggersRepository.logError(getClass()::getName, "Could not initialize class loader delegate class");
@@ -731,6 +724,7 @@ public class DefaultDriver extends Driver {
 			@Override
 			protected void initMainConsulter() {
 				super.initMainConsulter();
+				driver.unsafe.putInt(mainConsulter, 12L, -1);
 			}
 			
 			@Override

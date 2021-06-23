@@ -97,10 +97,8 @@ class ZipFile implements IterableZipContainer, Memorizer {
 	private ByteBuffer buildZipEntry(String absolutePath, ByteBuffer content, ZipEntry zipEntry, boolean recursive) {
 		try (
 			InputStream zipEntryIS = retrieveFile(absolutePath, content).getInputStream(zipEntry);
-			ByteBufferOutputStream bBOS = new ByteBufferOutputStream()
 		){
-			 Streams.copy(zipEntryIS, bBOS);
-			 return bBOS.toByteBuffer();
+			 return Streams.toByteBuffer(zipEntryIS);
 		} catch (Throwable exc) {
 			if (recursive) {
 				ManagedLoggersRepository.logWarn(getClass()::getName, "Exception occurred while building zip entry {} of {}: {}", zipEntry.getName(), absolutePath, exc.getMessage());
