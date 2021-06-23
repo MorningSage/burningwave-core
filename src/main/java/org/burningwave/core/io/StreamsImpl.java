@@ -148,15 +148,20 @@ class StreamsImpl implements Streams, Identifiable, Properties.Listener, Managed
 
 	@Override
 	public ByteBuffer toByteBuffer(InputStream inputStream) {
-		ByteBuffer byteBuffer = null;
+		try (ByteBufferOutputStream outputStream = new ByteBufferOutputStream()) {
+			copy(inputStream, outputStream);
+			return outputStream.toByteBuffer();
+		}
+		/*ByteBuffer byteBuffer = null;
 		try {
 			byteBuffer = defaultByteBufferAllocator.apply(defaultBufferSize);
+			byte[] tempBuffer = new byte[defaultBufferSize];
 			int initialPosition = ByteBufferHandler.position(byteBuffer);
-			int currentByte;
 			int reallocCount = 0;
-			while (-1 != (currentByte = inputStream.read())) {
+			int reads = 0;
+			while (-1 != (reads = inputStream.read(tempBuffer))) {
 				try {
-					byteBuffer.put((byte)currentByte);
+					byteBuffer.put(tempBuffer, 0, reads);
 				} catch (BufferOverflowException exc) {
 					int size = defaultBufferSize + (++reallocCount * defaultBufferSize);
 					ByteBuffer temp = defaultByteBufferAllocator.apply(size);
@@ -166,13 +171,13 @@ class StreamsImpl implements Streams, Identifiable, Properties.Listener, Managed
 			        ByteBufferHandler.limit(byteBuffer, limit);
 			        ByteBufferHandler.position(byteBuffer, initialPosition);
 			        byteBuffer = temp;
-			        byteBuffer.put((byte)currentByte);
+			        byteBuffer.put(tempBuffer, 0, reads);
 				}
 			}
 		} catch (Throwable exc) {
 			return Throwables.throwException(exc);
 		}
-		return shareContent(byteBuffer);
+		return shareContent(byteBuffer);*/
 	}
 	
 	@Override
