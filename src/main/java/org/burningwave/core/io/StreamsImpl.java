@@ -194,7 +194,7 @@ class StreamsImpl implements Streams, Identifiable, Properties.Listener, Managed
 		});
 	}
 	
-	/*@Override*/
+	@Override
 	public long copy(InputStream input, OutputStream output) {
 		return Executor.get(() -> {
 			byte[] buffer = new byte[defaultBufferSize];
