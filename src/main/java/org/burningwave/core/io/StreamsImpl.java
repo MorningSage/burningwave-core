@@ -148,11 +148,11 @@ class StreamsImpl implements Streams, Identifiable, Properties.Listener, Managed
 
 	@Override
 	public ByteBuffer toByteBuffer(InputStream inputStream) {
-		try (ByteBufferOutputStream outputStream = new ByteBufferOutputStream()) {
+		/*try (ByteBufferOutputStream outputStream = new ByteBufferOutputStream()) {
 			copy(inputStream, outputStream);
 			return outputStream.toByteBuffer();
-		}
-		/*ByteBuffer byteBuffer = null;
+		}*/
+		ByteBuffer byteBuffer = null;
 		try {
 			byteBuffer = defaultByteBufferAllocator.apply(defaultBufferSize);
 			byte[] tempBuffer = new byte[defaultBufferSize];
@@ -177,7 +177,7 @@ class StreamsImpl implements Streams, Identifiable, Properties.Listener, Managed
 		} catch (Throwable exc) {
 			return Throwables.throwException(exc);
 		}
-		return shareContent(byteBuffer);*/
+		return shareContent(byteBuffer);
 	}
 	
 	@Override
