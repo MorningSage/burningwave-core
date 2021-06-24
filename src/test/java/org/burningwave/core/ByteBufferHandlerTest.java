@@ -2,7 +2,7 @@ package org.burningwave.core;
 
 import static org.burningwave.core.assembler.StaticComponentContainer.ByteBufferHandler;
 
-import org.burningwave.core.jvm.LowLevelObjectsHandler.ByteBufferHandler.Deallocator;
+import org.burningwave.core.jvm.ByteBufferHandler.Deallocator;
 import org.junit.jupiter.api.Test;
 
 public class ByteBufferHandlerTest extends BaseTest {

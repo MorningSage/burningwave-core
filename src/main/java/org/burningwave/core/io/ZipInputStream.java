@@ -286,7 +286,7 @@ class ZipInputStream extends java.util.zip.ZipInputStream implements IterableZip
 			
 			public void unzipToFolder(File folder) {
 				File destinationFilePath = new File(folder.getAbsolutePath(), this.getName());
-				int defaultBufferSize = ((StreamsImpl)Streams).defaultBufferSize;
+				int defaultBufferSize = ByteBufferHandler.getDefaultBufferSize();
 				destinationFilePath.getParentFile().mkdirs();
 				if (!this.isDirectory()) {
 					Executor.run(() -> {

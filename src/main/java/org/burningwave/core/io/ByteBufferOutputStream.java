@@ -39,14 +39,12 @@ import java.nio.ByteBuffer;
 
 public class ByteBufferOutputStream extends OutputStream {
 
-    private static final float REALLOCATION_FACTOR = 1.1f;
-
     private Integer initialCapacity;
     private Integer initialPosition;
     private ByteBuffer buffer;
     
     public ByteBufferOutputStream() {
-    	this(((StreamsImpl)Streams).defaultBufferSize);
+    	this(ByteBufferHandler.getDefaultBufferSize());
     }
     
     public ByteBufferOutputStream(ByteBuffer buffer) {
@@ -56,7 +54,7 @@ public class ByteBufferOutputStream extends OutputStream {
     }
 
     public ByteBufferOutputStream(int initialCapacity) {
-        this(((StreamsImpl)Streams).defaultByteBufferAllocator.apply(initialCapacity));
+        this(ByteBufferHandler.allocate(initialCapacity));
     }
     
     @Override
@@ -105,8 +103,8 @@ public class ByteBufferOutputStream extends OutputStream {
 
     private void expandBuffer(int remainingRequired) {
     	int limit = ByteBufferHandler.limit(buffer);
-    	int expandSize = Math.max((int) (limit * REALLOCATION_FACTOR), ByteBufferHandler.position(buffer) + remainingRequired);
-        ByteBuffer temp = ((StreamsImpl)Streams).defaultByteBufferAllocator.apply(expandSize);        
+    	int expandSize = Math.max((int) (limit * ByteBufferHandler.getReallocationFactor()), ByteBufferHandler.position(buffer) + remainingRequired);
+        ByteBuffer temp = ByteBufferHandler.allocate(expandSize);        
         ByteBufferHandler.flip(buffer);
         temp.put(buffer);
         ByteBufferHandler.limit(buffer, limit);

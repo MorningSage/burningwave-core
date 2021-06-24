@@ -28,10 +28,8 @@
  */
 package org.burningwave.core.jvm;
 
-import static org.burningwave.core.assembler.StaticComponentContainer.BackgroundExecutor;
 import static org.burningwave.core.assembler.StaticComponentContainer.Constructors;
 import static org.burningwave.core.assembler.StaticComponentContainer.Fields;
-import static org.burningwave.core.assembler.StaticComponentContainer.LowLevelObjectsHandler;
 import static org.burningwave.core.assembler.StaticComponentContainer.ManagedLoggersRepository;
 import static org.burningwave.core.assembler.StaticComponentContainer.Members;
 import static org.burningwave.core.assembler.StaticComponentContainer.Methods;
@@ -42,15 +40,11 @@ import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.nio.Buffer;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 import java.util.function.Function;
 
 import org.burningwave.core.Closeable;
-import org.burningwave.core.Component;
 import org.burningwave.core.ManagedLogger;
 import org.burningwave.core.assembler.StaticComponentContainer;
 import org.burningwave.core.classes.MembersRetriever;
@@ -256,231 +250,6 @@ public class LowLevelObjectsHandler implements Closeable, ManagedLogger, Members
 			driver.close();
 		} else {
 			Throwables.throwException("Could not close singleton instance " + this);
-		}
-	}
-
-	public static class ByteBufferHandler implements Component {
-		private Field directAllocatedByteBufferAddressField;
-		
-		public ByteBufferHandler() {
-			BackgroundExecutor.createTask(() -> {
-				init();
-				synchronized (this) {
-					this.notifyAll();
-				}
-			}).setName("ByteBufferHandler initializer").submit();
-		}
-
-		void init() {
-			try {
-				if (LowLevelObjectsHandler == null) {
-					synchronized (LowLevelObjectsHandler.class) {
-						if (LowLevelObjectsHandler == null) {							
-							LowLevelObjectsHandler.class.wait();
-						}
-					}
-				}
-				Class directByteBufferClass = ByteBuffer.allocateDirect(1).getClass();
-				while (directByteBufferClass != null && directAllocatedByteBufferAddressField == null) {
-					directAllocatedByteBufferAddressField = LowLevelObjectsHandler.getDeclaredField(directByteBufferClass, field -> "address".equals(field.getName()));
-					directByteBufferClass = directByteBufferClass.getSuperclass();
-				}
-			} catch (InterruptedException exc) {
-				Throwables.throwException(exc);
-			}
-		}
-		
-		public static ByteBufferHandler create() {
-			return new ByteBufferHandler();
-		}
-		
-		public ByteBuffer allocate(int capacity) {
-			return ByteBuffer.allocate(capacity);
-		}
-		
-		public ByteBuffer allocateDirect(int capacity) {
-			return ByteBuffer.allocateDirect(capacity);
-		}
-		
-		public ByteBuffer duplicate(ByteBuffer buffer) {
-			return buffer.duplicate();
-		}
-		
-		public <T extends Buffer> int limit(T buffer) {
-			return ((Buffer)buffer).limit();
-		}
-		
-		public <T extends Buffer> int position(T buffer) {
-			return ((Buffer)buffer).position();
-		}
-		
-		public <T extends Buffer> T limit(T buffer, int newLimit) {
-			return (T)((Buffer)buffer).limit(newLimit);
-		}
-		
-		public <T extends Buffer> T position(T buffer, int newPosition) {
-			return (T)((Buffer)buffer).position(newPosition);
-		}
-		
-		public <T extends Buffer> T flip(T buffer) {
-			return (T)((Buffer)buffer).flip();
-		}
-		
-		public <T extends Buffer> int capacity(T buffer) {
-			return ((Buffer)buffer).capacity();
-		}
-		
-		public <T extends Buffer> int remaining(T buffer) {
-			return ((Buffer)buffer).remaining();
-		}
-		
-		public <T extends Buffer> long getAddress(T buffer) {
-			try {
-				return (long)LowLevelObjectsHandler.getFieldValue(buffer, directAllocatedByteBufferAddressField);
-			} catch (NullPointerException exc) {
-				return (long)LowLevelObjectsHandler.getFieldValue(buffer, getDirectAllocatedByteBufferAddressField());
-			}
-		}
-		
-		private Field getDirectAllocatedByteBufferAddressField() {
-			if (directAllocatedByteBufferAddressField == null) {
-				synchronized (this) {
-					if (directAllocatedByteBufferAddressField == null) {
-						try {
-							this.wait();
-						} catch (InterruptedException exc) {
-							Throwables.throwException(exc);
-						}
-					}
-				}
-			}
-			return directAllocatedByteBufferAddressField;
-		}
-
-		public <T extends Buffer> boolean destroy(T buffer, boolean force) {
-			if (buffer.isDirect()) {
-				Cleaner cleaner = getCleaner(buffer, force);
-				if (cleaner != null) {
-					return cleaner.clean();
-				}
-				return false;
-			} else {
-				return true;
-			}
-		}
-		
-		private <T extends Buffer> Object getInternalCleaner(T buffer, boolean findInAttachments) {
-			if (buffer.isDirect()) {
-				if (buffer != null) {
-					Object cleaner;
-					if ((cleaner = Fields.get(buffer, "cleaner")) != null) {
-						return cleaner;
-					} else if (findInAttachments){
-						return getInternalCleaner(Fields.getDirect(buffer, "att"), findInAttachments);
-					}
-				}
-			}
-			return null;
-		}
-		
-		private <T extends Buffer> Object getInternalDeallocator(T buffer, boolean findInAttachments) {
-			if (buffer.isDirect()) {
-				Object cleaner = getInternalCleaner(buffer, findInAttachments);
-				if (cleaner != null) {
-					return Fields.getDirect(cleaner, "thunk");
-				}
-			}
-			return null;
-		}
-		
-		private <T extends Buffer> Collection<T> getAllLinkedBuffers(T buffer) {
-			Collection<T> allLinkedBuffers = new ArrayList<>();
-			allLinkedBuffers.add(buffer);
-			while((buffer = Fields.getDirect(buffer, "att")) != null) {
-				allLinkedBuffers.add(buffer);
-			}
-			return allLinkedBuffers;
-		}
-		
-		public  <T extends Buffer> Cleaner getCleaner(T buffer, boolean findInAttachments) {
-			Object cleaner;
-			if ((cleaner = getInternalCleaner(buffer, findInAttachments)) != null) {
-				return new Cleaner () {
-					
-					@Override
-					public boolean clean() {
-						if (getAddress() != 0) {
-							Methods.invokeDirect(cleaner, "clean");
-							getAllLinkedBuffers(buffer).stream().forEach(linkedBuffer ->
-								Fields.setDirect(linkedBuffer, "address", 0L)
-							);							
-							return true;
-						}
-						return false;
-					}
-					
-					long getAddress() {
-						return Long.valueOf((long)Fields.getDirect(Fields.getDirect(cleaner, "thunk"), "address"));
-					}
-
-					@Override
-					public boolean cleaningHasBeenPerformed() {
-						return getAddress() == 0;
-					}
-					
-				};
-			}
-			return null;
-		}
-		
-		public <T extends Buffer> Deallocator getDeallocator(T buffer, boolean findInAttachments) {
-			if (buffer.isDirect()) {
-				Object deallocator;
-				if ((deallocator = getInternalDeallocator(buffer, findInAttachments)) != null) {
-					return new Deallocator() {
-						
-						@Override
-						public boolean freeMemory() {
-							if (getAddress() != 0) {
-								Methods.invokeDirect(deallocator, "run");
-								getAllLinkedBuffers(buffer).stream().forEach(linkedBuffer ->
-									Fields.setDirect(linkedBuffer, "address", 0L)
-								);	
-								return true;
-							} else {
-								return false;
-							}
-						}
-
-						public long getAddress() {
-							return Long.valueOf((long)Fields.getDirect(deallocator, "address"));
-						}
-
-						@Override
-						public boolean memoryHasBeenReleased() {
-							return getAddress() == 0;
-						}
-						
-					};
-				}
-			}
-			return null;
-		}
-		
-		public static interface Deallocator {
-			
-			public boolean freeMemory();
-			
-			boolean memoryHasBeenReleased();
-			
-		}
-		
-		public static interface Cleaner {
-			
-			public boolean clean();
-			
-			public boolean cleaningHasBeenPerformed();
-			
 		}
 	}
 }
