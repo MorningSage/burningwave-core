@@ -53,7 +53,11 @@ public class ByteBufferOutputStream extends OutputStream {
     public ByteBufferOutputStream(boolean closeable) {
     	this(((StreamsImpl)Streams).defaultBufferSize, closeable);
     }
-
+    
+    public ByteBufferOutputStream(ByteBuffer buffer) {
+        this(buffer, true);
+    }
+    
     public ByteBufferOutputStream(ByteBuffer buffer, boolean closeable) {
         this.buffer = buffer;
         this.initialPosition = ByteBufferHandler.position(buffer);
