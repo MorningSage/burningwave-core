@@ -159,10 +159,10 @@ class StreamsImpl implements Streams, Identifiable, Properties.Listener, Managed
 			if (bufferSize != 0 && -1 != (read = inputStream.read(tempBuffer))) {
 				byteBuffer = defaultByteBufferAllocator.apply(bufferSize);
 				byteBuffer.put(tempBuffer, 0, read);
-				int reallocCount = 0;
 				while (-1 != (read = inputStream.read(tempBuffer))) {
-					ByteBuffer temp = defaultByteBufferAllocator.apply(read + (++reallocCount * bufferSize));
 					int limit = ByteBufferHandler.limit(byteBuffer);
+					ByteBuffer temp = defaultByteBufferAllocator.apply(
+						Math.max((int)(limit * 1.1f), ByteBufferHandler.position(byteBuffer) + read));
 					ByteBufferHandler.flip(byteBuffer);
 					temp.put(byteBuffer);
 			        ByteBufferHandler.limit(byteBuffer, limit);

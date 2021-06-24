@@ -112,14 +112,15 @@ public class ByteBufferOutputStream extends OutputStream {
     }
 
     public void ensureRemaining(int remainingBytesRequired) {
-        if (remainingBytesRequired > buffer.remaining())
+        if (remainingBytesRequired > buffer.remaining()) {
             expandBuffer(remainingBytesRequired);
+        }
     }
 
     private void expandBuffer(int remainingRequired) {
-        int expandSize = Math.max((int) (ByteBufferHandler.limit(buffer) * REALLOCATION_FACTOR), ByteBufferHandler.position(buffer) + remainingRequired);
-        ByteBuffer temp = ((StreamsImpl)Streams).defaultByteBufferAllocator.apply(expandSize);
-        int limit = limit();
+    	int limit = ByteBufferHandler.limit(buffer);
+    	int expandSize = Math.max((int) (limit * REALLOCATION_FACTOR), ByteBufferHandler.position(buffer) + remainingRequired);
+        ByteBuffer temp = ((StreamsImpl)Streams).defaultByteBufferAllocator.apply(expandSize);        
         ByteBufferHandler.flip(buffer);
         temp.put(buffer);
         ByteBufferHandler.limit(buffer, limit);
