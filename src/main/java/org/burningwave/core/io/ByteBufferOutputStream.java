@@ -48,7 +48,7 @@ public class ByteBufferOutputStream extends OutputStream {
     public ByteBufferOutputStream() {
     	this(((StreamsImpl)Streams).defaultBufferSize);
     }
-
+    
     public ByteBufferOutputStream(ByteBuffer buffer) {
         this.buffer = buffer;
         this.initialPosition = ByteBufferHandler.position(buffer);
