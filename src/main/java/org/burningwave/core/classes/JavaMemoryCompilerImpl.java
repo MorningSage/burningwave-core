@@ -33,8 +33,10 @@ import static org.burningwave.core.assembler.StaticComponentContainer.IterableOb
 import static org.burningwave.core.assembler.StaticComponentContainer.ManagedLoggersRepository;
 import static org.burningwave.core.assembler.StaticComponentContainer.Paths;
 import static org.burningwave.core.assembler.StaticComponentContainer.SourceCodeHandler;
+import static org.burningwave.core.assembler.StaticComponentContainer.Streams;
 import static org.burningwave.core.assembler.StaticComponentContainer.Strings;
 
+import java.io.OutputStream;
 import java.io.Serializable;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -381,8 +383,8 @@ static class MemorySource extends SimpleJavaFileObject implements Serializable {
 
 static class MemoryFileObject extends SimpleJavaFileObject implements Component {
 	
-	private ByteBufferOutputStream baos = new ByteBufferOutputStream(false);
-	private final String name;
+	private String name;
+	private ByteBuffer content;
 	
     MemoryFileObject(String name, Kind kind) {
         super(URI.create("memory:///" + name.replace('.', '/') + kind.extension), kind);
@@ -399,27 +401,28 @@ static class MemoryFileObject extends SimpleJavaFileObject implements Component 
     }
     
     public ByteBuffer toByteBuffer() {
-    	return baos.toByteBuffer();
+    	return Streams.shareContent(content);
     }
     
     public byte[] toByteArray() {
-    	return baos.toByteArray();
+    	return Streams.toByteArray(toByteBuffer());
     }
 
     @Override
-    public ByteBufferOutputStream openOutputStream() {
-        return this.baos;
+    public OutputStream openOutputStream() {
+        return new ByteBufferOutputStream() {
+    		@Override
+    		public void close() {
+    			content = this.toByteBuffer();
+    			super.close();
+    		}
+    	};
     }
     
     @Override
 	public void close() {
-    	if (baos != null) {
-    		Executor.run(() -> {
-    			baos.markAsCloseable(true);
-				baos.close();
-			});
-    	}
-    	baos = null;    	
+    	name = null;
+    	content = null;
     }
 }
 

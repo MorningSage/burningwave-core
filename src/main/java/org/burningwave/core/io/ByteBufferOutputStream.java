@@ -44,33 +44,19 @@ public class ByteBufferOutputStream extends OutputStream {
     private Integer initialCapacity;
     private Integer initialPosition;
     private ByteBuffer buffer;
-    private Boolean closeable;
     
     public ByteBufferOutputStream() {
     	this(((StreamsImpl)Streams).defaultBufferSize);
     }
-    
-    public ByteBufferOutputStream(boolean closeable) {
-    	this(((StreamsImpl)Streams).defaultBufferSize, closeable);
-    }
 
-    public ByteBufferOutputStream(ByteBuffer buffer, boolean closeable) {
+    public ByteBufferOutputStream(ByteBuffer buffer) {
         this.buffer = buffer;
         this.initialPosition = ByteBufferHandler.position(buffer);
         this.initialCapacity = ByteBufferHandler.capacity(buffer);
-        this.closeable = closeable;
-    }
-    
-    public ByteBufferOutputStream(int initialCapacity) {
-        this(initialCapacity, true);
     }
 
-    public ByteBufferOutputStream(int initialCapacity, boolean closeable) {
-        this(((StreamsImpl)Streams).defaultByteBufferAllocator.apply(initialCapacity), closeable);
-    }
-    
-    public void markAsCloseable(boolean closeable) {
-    	this.closeable = closeable;
+    public ByteBufferOutputStream(int initialCapacity) {
+        this(((StreamsImpl)Streams).defaultByteBufferAllocator.apply(initialCapacity));
     }
     
     @Override
@@ -133,16 +119,6 @@ public class ByteBufferOutputStream extends OutputStream {
         return new ByteBufferInputStream(buffer);
     }
     
-    @Override
-    public void close() {
-    	if (closeable) {
-    		this.initialCapacity = null;
-    		this.initialPosition = null;
-    		this.buffer = null;
-    		this.closeable = null;
-    	}
-    }
-
 	public ByteBuffer toByteBuffer() {
 		return Streams.shareContent(buffer);
 	}
@@ -150,4 +126,11 @@ public class ByteBufferOutputStream extends OutputStream {
 	public byte[] toByteArray() {
 		return Streams.toByteArray(toByteBuffer());
 	}
+    
+    @Override
+    public void close() {
+    	this.initialCapacity = null;
+		this.initialPosition = null;
+		this.buffer = null;
+    }
 }

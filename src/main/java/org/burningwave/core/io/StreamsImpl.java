@@ -146,29 +146,30 @@ class StreamsImpl implements Streams, Identifiable, Properties.Listener, Managed
 	}
 	
 	@Override
-	public ByteBuffer toByteBuffer(InputStream inputStream, int size) {
-		try (ByteBufferOutputStream outputStream = new ByteBufferOutputStream(size > -1? size : defaultBufferSize)) {
+	public ByteBuffer toByteBuffer(InputStream inputStream, int streamSize) {
+		/*try (ByteBufferOutputStream outputStream = new ByteBufferOutputStream(size > -1? size : defaultBufferSize)) {
 			copy(inputStream, outputStream);
 			return outputStream.toByteBuffer();
-		}
-		/*ByteBuffer byteBuffer = null;
+		}*/
+		ByteBuffer byteBuffer = null;
 		try {
-			int bufferSize = size > -1? size : this.defaultBufferSize;
-			byte[] tempBuffer = new byte[bufferSize];
-			int read = 0;
-			if (bufferSize != 0 && -1 != (read = inputStream.read(tempBuffer))) {
-				byteBuffer = defaultByteBufferAllocator.apply(bufferSize);
-				byteBuffer.put(tempBuffer, 0, read);
-				while (-1 != (read = inputStream.read(tempBuffer))) {
-					int limit = ByteBufferHandler.limit(byteBuffer);
-					ByteBuffer temp = defaultByteBufferAllocator.apply(
-						Math.max((int)(limit * 1.1f), ByteBufferHandler.position(byteBuffer) + read));
-					ByteBufferHandler.flip(byteBuffer);
-					temp.put(byteBuffer);
-			        ByteBufferHandler.limit(byteBuffer, limit);
-			        ByteBufferHandler.position(byteBuffer, 0);
-			        byteBuffer = temp;
-					byteBuffer.put(tempBuffer, 0, read);
+			int byteBufferSize = streamSize > -1? streamSize : this.defaultBufferSize;
+			byte[] heapBuffer = new byte[defaultBufferSize];
+			int bytesRead;
+			if (byteBufferSize != 0 && -1 != (bytesRead = inputStream.read(heapBuffer))) {
+				byteBuffer = defaultByteBufferAllocator.apply(byteBufferSize);
+				byteBuffer.put(heapBuffer, 0, bytesRead);
+				while (-1 != (bytesRead = inputStream.read(heapBuffer))) {
+			        if (bytesRead > ByteBufferHandler.remaining(byteBuffer)) {
+						int limit = ByteBufferHandler.limit(byteBuffer);
+						ByteBuffer temp = defaultByteBufferAllocator.apply(Math.max((int)(limit * 1.1f), ByteBufferHandler.position(byteBuffer) + bytesRead));
+						ByteBufferHandler.flip(byteBuffer);
+						temp.put(byteBuffer);
+				        ByteBufferHandler.limit(byteBuffer, limit);
+				        ByteBufferHandler.position(byteBuffer, 0);
+				        byteBuffer = temp;
+			        }
+					byteBuffer.put(heapBuffer, 0, bytesRead);
 				}
 			} else {
 				byteBuffer = defaultByteBufferAllocator.apply(0);
@@ -176,7 +177,7 @@ class StreamsImpl implements Streams, Identifiable, Properties.Listener, Managed
 		} catch (Throwable exc) {
 			return Throwables.throwException(exc);
 		}
-		return shareContent(byteBuffer);*/
+		return shareContent(byteBuffer);
 	}
 	
 	@Override
