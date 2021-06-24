@@ -65,7 +65,7 @@ public class LowLevelObjectsHandler implements Closeable, ManagedLogger, Members
 		emtpyFieldsArray = new Field[]{};
 		emptyMethodsArray = new Method[]{};
 		emptyConstructorsArray = new Constructor<?>[]{};
-		driver = Executor.get(() -> (Driver)this.getClass().getClassLoader().loadClass(driverClassName).newInstance());
+		driver = Executor.get(() -> (Driver)this.getClass().getClassLoader().loadClass(driverClassName).getDeclaredConstructor().newInstance());
 	}
 	
 	public static LowLevelObjectsHandler create(String driverClassName) {
