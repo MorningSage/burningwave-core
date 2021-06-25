@@ -28,7 +28,7 @@
  */
 package org.burningwave.core.classes;
 
-import static org.burningwave.core.assembler.StaticComponentContainer.ByteBufferHandler;
+import static org.burningwave.core.assembler.StaticComponentContainer.BufferHandler;
 import static org.burningwave.core.assembler.StaticComponentContainer.ClassLoaders;
 import static org.burningwave.core.assembler.StaticComponentContainer.Classes;
 import static org.burningwave.core.assembler.StaticComponentContainer.Members;
@@ -191,7 +191,7 @@ public class ClassCriteria extends CriteriaWithClassElementsSupplyingSupport<Cla
 			this.predicate,
 			(context, cls) -> {
 				ClassCriteria criteria = context.getCriteria();
-				return predicate.test(ByteBufferHandler.toByteArray(criteria.byteCodeSupplier.apply(cls)));
+				return predicate.test(BufferHandler.toByteArray(criteria.byteCodeSupplier.apply(cls)));
 			}
 		);
 		return this;
@@ -204,7 +204,7 @@ public class ClassCriteria extends CriteriaWithClassElementsSupplyingSupport<Cla
 				ClassCriteria criteria = context.getCriteria();
 				return predicate.test(
 					criteria.getLoadedBytecode(), 
-					ByteBufferHandler.toByteArray(criteria.byteCodeSupplier.apply(cls))
+					BufferHandler.toByteArray(criteria.byteCodeSupplier.apply(cls))
 				);
 			}
 		);

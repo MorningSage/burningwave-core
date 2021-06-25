@@ -29,7 +29,7 @@
 package org.burningwave.core.io;
 
 
-import static org.burningwave.core.assembler.StaticComponentContainer.ByteBufferHandler;
+import static org.burningwave.core.assembler.StaticComponentContainer.BufferHandler;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -44,46 +44,46 @@ public class ByteBufferOutputStream extends OutputStream {
     
     public ByteBufferOutputStream(ByteBuffer buffer) {
         this.buffer = buffer;
-        this.initialPosition = ByteBufferHandler.position(buffer);
-        this.initialCapacity = ByteBufferHandler.capacity(buffer);
+        this.initialPosition = BufferHandler.position(buffer);
+        this.initialCapacity = BufferHandler.capacity(buffer);
     }
 
     public ByteBufferOutputStream(int initialCapacity) {
-        this(ByteBufferHandler.allocate(initialCapacity));
+        this(BufferHandler.allocate(initialCapacity));
     }
     
     @Override
 	public void write(int b) {
-    	buffer = ByteBufferHandler.ensureRemaining(buffer, 1, initialPosition);
+    	buffer = BufferHandler.ensureRemaining(buffer, 1, initialPosition);
         buffer.put((byte) b);
     }
 
     @Override
 	public void write(byte[] bytes, int off, int len) {
-    	buffer = ByteBufferHandler.ensureRemaining(buffer, len, initialPosition);
+    	buffer = BufferHandler.ensureRemaining(buffer, len, initialPosition);
         buffer.put(bytes, off, len);
     }
 
     public void write(ByteBuffer sourceBuffer) {
-    	buffer = ByteBufferHandler.ensureRemaining(buffer, ByteBufferHandler.remaining(sourceBuffer), initialPosition);
+    	buffer = BufferHandler.ensureRemaining(buffer, BufferHandler.remaining(sourceBuffer), initialPosition);
         buffer.put(sourceBuffer);
     }
 
     public int position() {
-        return ByteBufferHandler.position(buffer);
+        return BufferHandler.position(buffer);
     }
 
     public int remaining() {
-        return ByteBufferHandler.remaining(buffer);
+        return BufferHandler.remaining(buffer);
     }
 
     public int limit() {
-        return ByteBufferHandler.limit(buffer);
+        return BufferHandler.limit(buffer);
     }
 
     public void position(int position) {
-    	buffer = ByteBufferHandler.ensureRemaining(buffer, position - ByteBufferHandler.position(buffer), initialPosition);
-        ByteBufferHandler.position(buffer, position);
+    	buffer = BufferHandler.ensureRemaining(buffer, position - BufferHandler.position(buffer), initialPosition);
+        BufferHandler.position(buffer, position);
     }
 
     public int initialCapacity() {
@@ -95,11 +95,11 @@ public class ByteBufferOutputStream extends OutputStream {
     }
     
 	public ByteBuffer toByteBuffer() {
-		return ByteBufferHandler.shareContent(buffer);
+		return BufferHandler.shareContent(buffer);
 	}
 
 	public byte[] toByteArray() {
-		return ByteBufferHandler.toByteArray(toByteBuffer());
+		return BufferHandler.toByteArray(toByteBuffer());
 	}
     
     @Override

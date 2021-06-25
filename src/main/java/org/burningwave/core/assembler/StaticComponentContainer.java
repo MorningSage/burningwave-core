@@ -44,7 +44,7 @@ import org.burningwave.core.concurrent.QueuedTasksExecutor;
 import org.burningwave.core.function.Executor;
 import org.burningwave.core.iterable.Properties;
 import org.burningwave.core.iterable.Properties.Event;
-import org.burningwave.core.jvm.ByteBufferHandler;
+import org.burningwave.core.jvm.BufferHandler;
 
 @SuppressWarnings("unused")
 public class StaticComponentContainer {
@@ -126,9 +126,9 @@ public class StaticComponentContainer {
 	private static final org.burningwave.core.iterable.Properties.Listener GlobalPropertiesListener;
 	
 	public static final org.burningwave.core.concurrent.QueuedTasksExecutor.Group BackgroundExecutor;
+	public static final org.burningwave.core.jvm.BufferHandler BufferHandler;
 	public static final org.burningwave.core.classes.PropertyAccessor ByFieldOrByMethodPropertyAccessor;
 	public static final org.burningwave.core.classes.PropertyAccessor ByMethodOrByFieldPropertyAccessor;
-	public static final org.burningwave.core.jvm.ByteBufferHandler ByteBufferHandler;
 	public static final org.burningwave.core.Cache Cache;
 	public static final org.burningwave.core.classes.Classes Classes;
 	public static final org.burningwave.core.classes.Classes.Loaders ClassLoaders;
@@ -161,7 +161,7 @@ public class StaticComponentContainer {
 			Objects = org.burningwave.core.Objects.create();
 			Resources = new org.burningwave.core.io.Resources();
 			Properties properties = new Properties();
-			properties.putAll(org.burningwave.core.jvm.ByteBufferHandler.Configuration.DEFAULT_VALUES);
+			properties.putAll(org.burningwave.core.jvm.BufferHandler.Configuration.DEFAULT_VALUES);
 			properties.putAll(org.burningwave.core.iterable.IterableObjectHelper.Configuration.DEFAULT_VALUES);
 			properties.putAll(org.burningwave.core.ManagedLogger.Repository.Configuration.DEFAULT_VALUES);
 			properties.putAll(org.burningwave.core.concurrent.Thread.Supplier.Configuration.DEFAULT_VALUES);
@@ -293,7 +293,7 @@ public class StaticComponentContainer {
 			Paths = org.burningwave.core.Strings.Paths.create();
 			FileSystemHelper = org.burningwave.core.io.FileSystemHelper.create(getName("FileSystemHelper"));
 			JVMInfo = org.burningwave.core.jvm.JVMInfo.create();
-			ByteBufferHandler = org.burningwave.core.jvm.ByteBufferHandler.create(GlobalProperties);
+			BufferHandler = org.burningwave.core.jvm.BufferHandler.create(GlobalProperties);
 			Streams = org.burningwave.core.io.Streams.create();
 			synchronized (org.burningwave.core.jvm.LowLevelObjectsHandler.class) {
 				LowLevelObjectsHandler = org.burningwave.core.jvm.LowLevelObjectsHandler.create(

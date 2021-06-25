@@ -29,7 +29,7 @@
 package org.burningwave.core;
 
 import static org.burningwave.core.assembler.StaticComponentContainer.BackgroundExecutor;
-import static org.burningwave.core.assembler.StaticComponentContainer.ByteBufferHandler;
+import static org.burningwave.core.assembler.StaticComponentContainer.BufferHandler;
 import static org.burningwave.core.assembler.StaticComponentContainer.IterableObjectHelper;
 import static org.burningwave.core.assembler.StaticComponentContainer.ManagedLoggersRepository;
 import static org.burningwave.core.assembler.StaticComponentContainer.Objects;
@@ -70,7 +70,7 @@ public class Cache implements ManagedLogger {
 	
 	private Cache() {
 		ManagedLoggersRepository.logInfo(getClass()::getName, "Building cache");
-		pathForContents = new PathForResources<>(ByteBufferHandler::shareContent);
+		pathForContents = new PathForResources<>(BufferHandler::shareContent);
 		pathForFileSystemItems = new PathForResources<>(
 			(path, fileSystemItem) -> 
 				fileSystemItem.destroy()

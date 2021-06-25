@@ -28,7 +28,7 @@
  */
 package org.burningwave.core.io;
 
-import static org.burningwave.core.assembler.StaticComponentContainer.ByteBufferHandler;
+import static org.burningwave.core.assembler.StaticComponentContainer.BufferHandler;
 import static org.burningwave.core.assembler.StaticComponentContainer.Cache;
 import static org.burningwave.core.assembler.StaticComponentContainer.ManagedLoggersRepository;
 import static org.burningwave.core.assembler.StaticComponentContainer.Paths;
@@ -114,7 +114,7 @@ class ZipInputStream extends java.util.zip.ZipInputStream implements IterableZip
 	}
 
 	public byte[] toByteArray() {
-		return ByteBufferHandler.toByteArray(toByteBuffer());
+		return BufferHandler.toByteArray(toByteBuffer());
 	}
 
 	@Override
@@ -250,7 +250,7 @@ class ZipInputStream extends java.util.zip.ZipInputStream implements IterableZip
 			public long getSize() {
 				long size = super.getSize();
 				if (size < 0) {
-					size = ByteBufferHandler.limit(toByteBuffer());
+					size = BufferHandler.limit(toByteBuffer());
 				}
 				return size;
 			}		
@@ -286,7 +286,7 @@ class ZipInputStream extends java.util.zip.ZipInputStream implements IterableZip
 			
 			public void unzipToFolder(File folder) {
 				File destinationFilePath = new File(folder.getAbsolutePath(), this.getName());
-				int defaultBufferSize = ByteBufferHandler.getDefaultBufferSize();
+				int defaultBufferSize = BufferHandler.getDefaultBufferSize();
 				destinationFilePath.getParentFile().mkdirs();
 				if (!this.isDirectory()) {
 					Executor.run(() -> {
@@ -351,7 +351,7 @@ class ZipInputStream extends java.util.zip.ZipInputStream implements IterableZip
 							entry.getName().equals(getName()), zEntry -> 
 							zEntry.toByteBuffer(), zEntry -> true
 						);
-						return ByteBufferHandler.shareContent(content);
+						return BufferHandler.shareContent(content);
 					}
 				});			
 			}

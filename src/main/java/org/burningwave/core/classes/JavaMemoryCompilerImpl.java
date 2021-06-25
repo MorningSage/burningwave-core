@@ -29,7 +29,7 @@
 package org.burningwave.core.classes;
 
 import static org.burningwave.core.assembler.StaticComponentContainer.BackgroundExecutor;
-import static org.burningwave.core.assembler.StaticComponentContainer.ByteBufferHandler;
+import static org.burningwave.core.assembler.StaticComponentContainer.BufferHandler;
 import static org.burningwave.core.assembler.StaticComponentContainer.IterableObjectHelper;
 import static org.burningwave.core.assembler.StaticComponentContainer.ManagedLoggersRepository;
 import static org.burningwave.core.assembler.StaticComponentContainer.Paths;
@@ -401,16 +401,16 @@ static class MemoryFileObject extends SimpleJavaFileObject implements Component 
     }
     
     public ByteBuffer toByteBuffer() {
-    	return ByteBufferHandler.shareContent(content);
+    	return BufferHandler.shareContent(content);
     }
     
     public byte[] toByteArray() {
-    	return ByteBufferHandler.toByteArray(content);
+    	return BufferHandler.toByteArray(content);
     }
 
     @Override
     public OutputStream openOutputStream() {
-        return new ByteBufferOutputStream(ByteBufferHandler.getDefaultBufferSize()) {
+        return new ByteBufferOutputStream(BufferHandler.getDefaultBufferSize()) {
     		@Override
     		public void close() {
     			content = this.toByteBuffer();

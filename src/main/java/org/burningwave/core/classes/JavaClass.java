@@ -28,7 +28,7 @@
  */
 package org.burningwave.core.classes;
 
-import static org.burningwave.core.assembler.StaticComponentContainer.ByteBufferHandler;
+import static org.burningwave.core.assembler.StaticComponentContainer.BufferHandler;
 import static org.burningwave.core.assembler.StaticComponentContainer.Classes;
 import static org.burningwave.core.assembler.StaticComponentContainer.Streams;
 
@@ -55,7 +55,7 @@ public class JavaClass implements Closeable {
 	}
 	
 	JavaClass(ByteBuffer byteCode) {
-		this(Classes.retrieveName(byteCode), ByteBufferHandler.shareContent(byteCode));
+		this(Classes.retrieveName(byteCode), BufferHandler.shareContent(byteCode));
 	}
 	
 	public static JavaClass create(Class<?> cls) {
@@ -146,11 +146,11 @@ public class JavaClass implements Closeable {
 	}
 	
 	public ByteBuffer getByteCode() {
-		return ByteBufferHandler.duplicate(byteCode);
+		return BufferHandler.duplicate(byteCode);
 	}
 	
 	public byte[] toByteArray() {
-		return ByteBufferHandler.toByteArray(getByteCode());
+		return BufferHandler.toByteArray(getByteCode());
 	}
 	
 	public FileSystemItem storeToClassPath(String classPathFolder) {

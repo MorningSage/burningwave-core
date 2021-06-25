@@ -25,14 +25,14 @@ import org.burningwave.core.iterable.Properties;
 import org.burningwave.core.iterable.Properties.Event;
 
 @SuppressWarnings("unchecked")
-public class ByteBufferHandler implements Component {
+public class BufferHandler implements Component {
 	
 	public static class Configuration {
 		
 		public static class Key {
 		
-			static final String BYTE_BUFFER_SIZE = "byte-buffer-handler.default-buffer-size";
-			static final String BYTE_BUFFER_ALLOCATION_MODE = "byte-buffer-handler.default-allocation-mode";
+			static final String BYTE_BUFFER_SIZE = "buffer-handler.default-buffer-size";
+			static final String BYTE_BUFFER_ALLOCATION_MODE = "buffer-handler.default-allocation-mode";
 		
 		}
 		
@@ -56,7 +56,7 @@ public class ByteBufferHandler implements Component {
 	Function<Integer, ByteBuffer> defaultByteBufferAllocator;
     final static float reallocationFactor = 1.1f;
 	
-	public ByteBufferHandler(java.util.Properties config) {
+	public BufferHandler(java.util.Properties config) {
 		init(config);
 	}
 
@@ -140,8 +140,8 @@ public class ByteBufferHandler implements Component {
 		return defaultBufferSize;
 	}
 	
-	public static ByteBufferHandler create(java.util.Properties config) {
-		return new ByteBufferHandler(config);
+	public static BufferHandler create(java.util.Properties config) {
+		return new BufferHandler(config);
 	}
 	
 	public ByteBuffer allocate(int capacity) {
@@ -267,7 +267,7 @@ public class ByteBufferHandler implements Component {
 
 	public <T extends Buffer> boolean destroy(T buffer, boolean force) {
 		if (buffer.isDirect()) {
-			ByteBufferHandler.Cleaner cleaner = getCleaner(buffer, force);
+			BufferHandler.Cleaner cleaner = getCleaner(buffer, force);
 			if (cleaner != null) {
 				return cleaner.clean();
 			}
@@ -334,7 +334,7 @@ public class ByteBufferHandler implements Component {
 		return new byte[size > -1? size : defaultBufferSize];
 	}
 	
-	public  <T extends Buffer> ByteBufferHandler.Cleaner getCleaner(T buffer, boolean findInAttachments) {
+	public  <T extends Buffer> BufferHandler.Cleaner getCleaner(T buffer, boolean findInAttachments) {
 		Object cleaner;
 		if ((cleaner = getInternalCleaner(buffer, findInAttachments)) != null) {
 			return new Cleaner () {
@@ -365,7 +365,7 @@ public class ByteBufferHandler implements Component {
 		return null;
 	}
 	
-	public <T extends Buffer> ByteBufferHandler.Deallocator getDeallocator(T buffer, boolean findInAttachments) {
+	public <T extends Buffer> BufferHandler.Deallocator getDeallocator(T buffer, boolean findInAttachments) {
 		if (buffer.isDirect()) {
 			Object deallocator;
 			if ((deallocator = getInternalDeallocator(buffer, findInAttachments)) != null) {

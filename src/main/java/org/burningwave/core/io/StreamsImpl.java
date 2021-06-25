@@ -1,6 +1,6 @@
 package org.burningwave.core.io;
 
-import static org.burningwave.core.assembler.StaticComponentContainer.ByteBufferHandler;
+import static org.burningwave.core.assembler.StaticComponentContainer.BufferHandler;
 import static org.burningwave.core.assembler.StaticComponentContainer.Synchronizer;
 import static org.burningwave.core.assembler.StaticComponentContainer.Throwables;
 
@@ -66,7 +66,7 @@ class StreamsImpl implements Streams, Identifiable, Properties.Listener, Managed
 	}
 	
 	private boolean is(ByteBuffer bytes, Predicate<Integer> predicate) {
-		return bytes.capacity() > 4 && bytes.limit() > 4 && predicate.test(ByteBufferHandler.duplicate(bytes).getInt());
+		return bytes.capacity() > 4 && bytes.limit() > 4 && predicate.test(BufferHandler.duplicate(bytes).getInt());
 	}
 	
 	private boolean isArchive(int fileSignature) {
@@ -98,13 +98,13 @@ class StreamsImpl implements Streams, Identifiable, Properties.Listener, Managed
 			return outputStream.toByteBuffer();
 		}*/
 		try {
-			byte[] heapBuffer = ByteBufferHandler.newByteArrayWithDefaultSize();
+			byte[] heapBuffer = BufferHandler.newByteArrayWithDefaultSize();
 			int bytesRead;
-			ByteBuffer byteBuffer = ByteBufferHandler.newByteBuffer(streamSize);
+			ByteBuffer byteBuffer = BufferHandler.newByteBuffer(streamSize);
 			while (-1 != (bytesRead = inputStream.read(heapBuffer))) {
-				byteBuffer = ByteBufferHandler.put(byteBuffer, heapBuffer, bytesRead);
+				byteBuffer = BufferHandler.put(byteBuffer, heapBuffer, bytesRead);
 			}
-			return ByteBufferHandler.shareContent(byteBuffer);
+			return BufferHandler.shareContent(byteBuffer);
 		} catch (Throwable exc) {
 			return Throwables.throwException(exc);
 		}
@@ -137,7 +137,7 @@ class StreamsImpl implements Streams, Identifiable, Properties.Listener, Managed
 	@Override
 	public void copy(InputStream input, OutputStream output) {
 		Executor.run(() -> {
-			byte[] buffer = ByteBufferHandler.newByteArrayWithDefaultSize();
+			byte[] buffer = BufferHandler.newByteArrayWithDefaultSize();
 			int bytesRead = 0;
 			while (-1 != (bytesRead = input.read(buffer))) {
 				output.write(buffer, 0, bytesRead);
@@ -147,12 +147,12 @@ class StreamsImpl implements Streams, Identifiable, Properties.Listener, Managed
 	
 	@Override
 	public FileSystemItem store(String fileAbsolutePath, byte[] bytes) {
-		return store(fileAbsolutePath, ByteBufferHandler.allocate(bytes.length).put(bytes, 0, bytes.length));
+		return store(fileAbsolutePath, BufferHandler.allocate(bytes.length).put(bytes, 0, bytes.length));
 	}
 	
 	@Override
 	public FileSystemItem store(String fileAbsolutePath, ByteBuffer bytes) {
-		ByteBuffer content = ByteBufferHandler.shareContent(bytes);
+		ByteBuffer content = BufferHandler.shareContent(bytes);
 		File file = new File(fileAbsolutePath);
 		Synchronizer.execute(fileAbsolutePath, () -> {
 			if (!file.exists()) {
