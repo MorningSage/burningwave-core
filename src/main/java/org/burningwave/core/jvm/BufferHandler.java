@@ -31,8 +31,8 @@ public class BufferHandler implements Component {
 		
 		public static class Key {
 		
-			static final String BYTE_BUFFER_SIZE = "buffer-handler.default-buffer-size";
-			static final String BYTE_BUFFER_ALLOCATION_MODE = "buffer-handler.default-allocation-mode";
+			static final String BUFFER_SIZE = "buffer-handler.default-buffer-size";
+			static final String BUFFER_ALLOCATION_MODE = "buffer-handler.default-allocation-mode";
 		
 		}
 		
@@ -41,9 +41,9 @@ public class BufferHandler implements Component {
 		static {
 			Map<String, Object> defaultValues = new HashMap<>();
 			
-			defaultValues.put(Key.BYTE_BUFFER_SIZE, "1024");
+			defaultValues.put(Key.BUFFER_SIZE, "1024");
 			defaultValues.put(
-				Key.BYTE_BUFFER_ALLOCATION_MODE,
+				Key.BUFFER_ALLOCATION_MODE,
 				"ByteBuffer::allocateDirect"
 			);
 			
@@ -94,7 +94,7 @@ public class BufferHandler implements Component {
 	}
 	
 	private void setDefaultByteBufferSize(java.util.Properties config) {
-		String defaultBufferSize = IterableObjectHelper.resolveStringValue(config, Configuration.Key.BYTE_BUFFER_SIZE, Configuration.DEFAULT_VALUES);
+		String defaultBufferSize = IterableObjectHelper.resolveStringValue(config, Configuration.Key.BUFFER_SIZE, Configuration.DEFAULT_VALUES);
 		try {
 			this.defaultBufferSize = Integer.valueOf(defaultBufferSize);
 		} catch (Throwable exc) {
@@ -112,7 +112,7 @@ public class BufferHandler implements Component {
 	}
 	
 	private void setDefaultByteBufferAllocationMode(java.util.Properties config) {
-		String defaultByteBufferAllocationMode = IterableObjectHelper.resolveStringValue(config, Configuration.Key.BYTE_BUFFER_ALLOCATION_MODE, Configuration.DEFAULT_VALUES);
+		String defaultByteBufferAllocationMode = IterableObjectHelper.resolveStringValue(config, Configuration.Key.BUFFER_ALLOCATION_MODE, Configuration.DEFAULT_VALUES);
 		if (defaultByteBufferAllocationMode.equalsIgnoreCase("ByteBuffer::allocate")) {
 			this.defaultByteBufferAllocator = this::allocateInHeap;
 			ManagedLoggersRepository.logInfo(getClass()::getName, "default allocation mode: ByteBuffer::allocate");
@@ -127,9 +127,9 @@ public class BufferHandler implements Component {
 		if (event.name().equals(Event.PUT.name())) {
 			if (key instanceof String) {
 				String keyAsString = (String)key;
-				if (keyAsString.equals(Configuration.Key.BYTE_BUFFER_SIZE)) {
+				if (keyAsString.equals(Configuration.Key.BUFFER_SIZE)) {
 					setDefaultByteBufferSize(config);
-				} else if (keyAsString.equals(Configuration.Key.BYTE_BUFFER_ALLOCATION_MODE)) {
+				} else if (keyAsString.equals(Configuration.Key.BUFFER_ALLOCATION_MODE)) {
 					setDefaultByteBufferAllocationMode(config);
 				}
 			}
