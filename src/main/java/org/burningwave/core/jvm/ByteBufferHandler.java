@@ -1,6 +1,7 @@
 package org.burningwave.core.jvm;
 
 import static org.burningwave.core.assembler.StaticComponentContainer.BackgroundExecutor;
+import static org.burningwave.core.assembler.StaticComponentContainer.ByteBufferHandler;
 import static org.burningwave.core.assembler.StaticComponentContainer.Fields;
 import static org.burningwave.core.assembler.StaticComponentContainer.IterableObjectHelper;
 import static org.burningwave.core.assembler.StaticComponentContainer.LowLevelObjectsHandler;
@@ -20,6 +21,7 @@ import java.util.Map;
 import java.util.function.Function;
 
 import org.burningwave.core.Component;
+import org.burningwave.core.io.ByteBufferOutputStream;
 import org.burningwave.core.iterable.Properties;
 import org.burningwave.core.iterable.Properties.Event;
 
@@ -50,10 +52,10 @@ public class ByteBufferHandler implements Component {
 		}
 	}
 	
-	private Field directAllocatedByteBufferAddressField;
+	Field directAllocatedByteBufferAddressField;
 	int defaultBufferSize;
 	Function<Integer, ByteBuffer> defaultByteBufferAllocator;
-    float reallocationFactor = 1.1f;
+    final static float reallocationFactor = 1.1f;
 	
 	public ByteBufferHandler(java.util.Properties config) {
 		init(config);
@@ -135,16 +137,12 @@ public class ByteBufferHandler implements Component {
 		}
 	}
 	
+	public int getDefaultBufferSize() {
+		return defaultBufferSize;
+	}
+	
 	public static ByteBufferHandler create(java.util.Properties config) {
 		return new ByteBufferHandler(config);
-	}
-	
-	public int getDefaultBufferSize() {
-		return this.defaultBufferSize;
-	}
-	
-	public float getReallocationFactor() {
-		return reallocationFactor;
 	}
 	
 	public ByteBuffer allocate(int capacity) {
@@ -196,17 +194,38 @@ public class ByteBufferHandler implements Component {
 	}
 	
 	public ByteBuffer put(ByteBuffer byteBuffer, byte[] heapBuffer, int bytesToWrite) {
-        if (bytesToWrite > remaining(byteBuffer)) {
-			int limit = limit(byteBuffer);
-			ByteBuffer temporaryBuffer = allocate(Math.max((int)(limit * reallocationFactor), position(byteBuffer) + bytesToWrite));
-			flip(byteBuffer);
-			temporaryBuffer.put(byteBuffer);
-	        limit(byteBuffer, limit);
-	        position(byteBuffer, 0);
-	        byteBuffer = temporaryBuffer;
-        }
+		return put(byteBuffer, heapBuffer, bytesToWrite, 0);
+	}
+	
+	public ByteBuffer put(ByteBuffer byteBuffer, byte[] heapBuffer, int bytesToWrite, int initialPosition) {
+		byteBuffer = ensureRemaining(byteBuffer, bytesToWrite, initialPosition);
 		byteBuffer.put(heapBuffer, 0, bytesToWrite);
 		return byteBuffer;
+	}
+	
+    public ByteBuffer ensureRemaining(ByteBuffer byteBuffer, int requiredBytes) {
+        return ensureRemaining(byteBuffer, requiredBytes, 0);
+    } 
+	
+    public ByteBuffer ensureRemaining(ByteBuffer byteBuffer, int requiredBytes, int initialPosition) {
+        if (requiredBytes > remaining(byteBuffer)) {
+        	return ByteBufferHandler.expandBuffer(byteBuffer, requiredBytes, initialPosition);
+        }
+        return byteBuffer;
+    }  
+	
+	public ByteBuffer expandBuffer(ByteBuffer byteBuffer, int requiredBytes) {
+		return expandBuffer(byteBuffer, requiredBytes, 0);
+	}
+
+	public ByteBuffer expandBuffer(ByteBuffer byteBuffer, int requiredBytes, int initialPosition) {
+		int limit = limit(byteBuffer);
+		ByteBuffer newBuffer = allocate(Math.max((int)(limit * reallocationFactor), position(byteBuffer) + requiredBytes));
+		flip(byteBuffer);
+		newBuffer.put(byteBuffer);
+        limit(byteBuffer, limit);
+        position(byteBuffer, initialPosition);
+        return newBuffer;        
 	}
 	
 	public <T extends Buffer> long getAddress(T buffer) {
@@ -275,6 +294,30 @@ public class ByteBufferHandler implements Component {
 			allLinkedBuffers.add(buffer);
 		}
 		return allLinkedBuffers;
+	}
+	
+	public ByteBuffer newByteBufferWithDefaultSize() {
+		return allocate(defaultBufferSize);
+	}
+	
+	public ByteBuffer newByteBuffer(int size) {
+		return allocate(size > -1? size : defaultBufferSize);
+	}
+	
+	public ByteBufferOutputStream newByteBufferOutputStreamWithDefaultSize() {
+		return new ByteBufferOutputStream(defaultBufferSize);
+	}
+	
+	public ByteBufferOutputStream newByteBufferOutputStream(int size) {
+		return new ByteBufferOutputStream(size > -1? size : defaultBufferSize);
+	}
+	
+	public byte[] newByteArrayWithDefaultSize() {
+		return new byte[defaultBufferSize];
+	}
+	
+	public byte[] newByteArray(int size) {
+		return new byte[size > -1? size : defaultBufferSize];
 	}
 	
 	public  <T extends Buffer> ByteBufferHandler.Cleaner getCleaner(T buffer, boolean findInAttachments) {
@@ -357,4 +400,5 @@ public class ByteBufferHandler implements Component {
 		public boolean cleaningHasBeenPerformed();
 		
 	}
+
 }

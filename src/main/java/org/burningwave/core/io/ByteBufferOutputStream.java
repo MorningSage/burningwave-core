@@ -43,10 +43,6 @@ public class ByteBufferOutputStream extends OutputStream {
     private Integer initialPosition;
     private ByteBuffer buffer;
     
-    public ByteBufferOutputStream() {
-    	this(ByteBufferHandler.getDefaultBufferSize());
-    }
-    
     public ByteBufferOutputStream(ByteBuffer buffer) {
         this.buffer = buffer;
         this.initialPosition = ByteBufferHandler.position(buffer);
@@ -59,18 +55,18 @@ public class ByteBufferOutputStream extends OutputStream {
     
     @Override
 	public void write(int b) {
-        ensureRemaining(1);
+    	buffer = ByteBufferHandler.ensureRemaining(buffer, 1, initialPosition);
         buffer.put((byte) b);
     }
 
     @Override
 	public void write(byte[] bytes, int off, int len) {
-        ensureRemaining(len);
+    	buffer = ByteBufferHandler.ensureRemaining(buffer, len, initialPosition);
         buffer.put(bytes, off, len);
     }
 
     public void write(ByteBuffer sourceBuffer) {
-        ensureRemaining(sourceBuffer.remaining());
+    	buffer = ByteBufferHandler.ensureRemaining(buffer, ByteBufferHandler.remaining(sourceBuffer), initialPosition);
         buffer.put(sourceBuffer);
     }
 
@@ -87,31 +83,13 @@ public class ByteBufferOutputStream extends OutputStream {
     }
 
     public void position(int position) {
-        ensureRemaining(position - ByteBufferHandler.position(buffer));
+    	buffer = ByteBufferHandler.ensureRemaining(buffer, position - ByteBufferHandler.position(buffer), initialPosition);
         ByteBufferHandler.position(buffer, position);
     }
 
     public int initialCapacity() {
         return initialCapacity;
-    }
-
-    public void ensureRemaining(int remainingBytesRequired) {
-        if (remainingBytesRequired > buffer.remaining()) {
-            expandBuffer(remainingBytesRequired);
-        }
-    }
-
-    private void expandBuffer(int remainingRequired) {
-    	int limit = ByteBufferHandler.limit(buffer);
-    	int expandSize = Math.max((int) (limit * ByteBufferHandler.getReallocationFactor()), ByteBufferHandler.position(buffer) + remainingRequired);
-        ByteBuffer temp = ByteBufferHandler.allocate(expandSize);        
-        ByteBufferHandler.flip(buffer);
-        temp.put(buffer);
-        ByteBufferHandler.limit(buffer, limit);
-        ByteBufferHandler.position(buffer, initialPosition);
-        buffer = temp;
-    }
-    
+    }  
     
     InputStream toBufferedInputStream() {
         return new ByteBufferInputStream(buffer);

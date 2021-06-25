@@ -21,8 +21,7 @@ import org.burningwave.core.function.Executor;
 import org.burningwave.core.iterable.Properties;
 
 class StreamsImpl implements Streams, Identifiable, Properties.Listener, ManagedLogger {
-	/*int defaultBufferSize;
-	Function<Integer, ByteBuffer> defaultByteBufferAllocator;*/
+
 	String instanceId;
 	
 	StreamsImpl() {
@@ -84,7 +83,7 @@ class StreamsImpl implements Streams, Identifiable, Properties.Listener, Managed
 
 	@Override
 	public byte[] toByteArray(InputStream inputStream) {
-		try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream(ByteBufferHandler.getDefaultBufferSize())) {
+		try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
 			copy(inputStream, outputStream);
 			return outputStream.toByteArray();
 		} catch (Throwable exc) {
@@ -94,15 +93,14 @@ class StreamsImpl implements Streams, Identifiable, Properties.Listener, Managed
 	
 	@Override
 	public ByteBuffer toByteBuffer(InputStream inputStream, int streamSize) {
-		/*try (ByteBufferOutputStream outputStream = new ByteBufferOutputStream(streamSize > -1? streamSize : defaultBufferSize)) {
+		/*try (ByteBufferOutputStream outputStream = ByteBufferHandler.newByteBufferOutputStream(streamSize)) {
 			copy(inputStream, outputStream);
 			return outputStream.toByteBuffer();
 		}*/
 		try {
-			byte[] heapBuffer = new byte[ByteBufferHandler.getDefaultBufferSize()];
+			byte[] heapBuffer = ByteBufferHandler.newByteArrayWithDefaultSize();
 			int bytesRead;
-			int byteBufferSize = streamSize > -1? streamSize : ByteBufferHandler.getDefaultBufferSize();
-			ByteBuffer byteBuffer = ByteBufferHandler.allocate(byteBufferSize);
+			ByteBuffer byteBuffer = ByteBufferHandler.newByteBuffer(streamSize);
 			while (-1 != (bytesRead = inputStream.read(heapBuffer))) {
 				byteBuffer = ByteBufferHandler.put(byteBuffer, heapBuffer, bytesRead);
 			}
@@ -139,7 +137,7 @@ class StreamsImpl implements Streams, Identifiable, Properties.Listener, Managed
 	@Override
 	public void copy(InputStream input, OutputStream output) {
 		Executor.run(() -> {
-			byte[] buffer = new byte[ByteBufferHandler.getDefaultBufferSize()];
+			byte[] buffer = ByteBufferHandler.newByteArrayWithDefaultSize();
 			int bytesRead = 0;
 			while (-1 != (bytesRead = input.read(buffer))) {
 				output.write(buffer, 0, bytesRead);
