@@ -34,7 +34,6 @@ import static org.burningwave.core.assembler.StaticComponentContainer.IterableOb
 import static org.burningwave.core.assembler.StaticComponentContainer.ManagedLoggersRepository;
 import static org.burningwave.core.assembler.StaticComponentContainer.Paths;
 import static org.burningwave.core.assembler.StaticComponentContainer.SourceCodeHandler;
-import static org.burningwave.core.assembler.StaticComponentContainer.Streams;
 import static org.burningwave.core.assembler.StaticComponentContainer.Strings;
 
 import java.io.OutputStream;
@@ -402,11 +401,11 @@ static class MemoryFileObject extends SimpleJavaFileObject implements Component 
     }
     
     public ByteBuffer toByteBuffer() {
-    	return Streams.shareContent(content);
+    	return ByteBufferHandler.shareContent(content);
     }
     
     public byte[] toByteArray() {
-    	return Streams.toByteArray(content);
+    	return ByteBufferHandler.toByteArray(content);
     }
 
     @Override

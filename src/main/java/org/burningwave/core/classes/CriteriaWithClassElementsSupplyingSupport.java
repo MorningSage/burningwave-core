@@ -28,7 +28,7 @@
  */
 package org.burningwave.core.classes;
 
-import static org.burningwave.core.assembler.StaticComponentContainer.Streams;
+import static org.burningwave.core.assembler.StaticComponentContainer.ByteBufferHandler;
 
 import java.nio.ByteBuffer;
 import java.util.Collection;
@@ -164,7 +164,7 @@ public abstract class CriteriaWithClassElementsSupplyingSupport<
 			synchronized (this) {
 				Map<Class<?>, byte[]> loadedBytecode = new HashMap<>();
 				for (Class<?> cls : classesToBeUploaded) {
-					loadedBytecode.put(cls, Streams.toByteArray(byteCodeSupplier.apply(cls)));
+					loadedBytecode.put(cls, ByteBufferHandler.toByteArray(byteCodeSupplier.apply(cls)));
 				}
 				this.loadedBytecode = loadedBytecode;
 			}

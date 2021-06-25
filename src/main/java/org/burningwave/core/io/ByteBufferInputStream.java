@@ -29,7 +29,6 @@
 package org.burningwave.core.io;
 
 import static org.burningwave.core.assembler.StaticComponentContainer.ByteBufferHandler;
-import static org.burningwave.core.assembler.StaticComponentContainer.Streams;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,8 +39,8 @@ public final class ByteBufferInputStream extends InputStream {
     private ByteBuffer bufferCopy;
 
     public ByteBufferInputStream(ByteBuffer buffer) {
-        this.buffer = Streams.shareContent(buffer);
-        this.bufferCopy = Streams.shareContent(buffer);
+        this.buffer = ByteBufferHandler.shareContent(buffer);
+        this.bufferCopy = ByteBufferHandler.shareContent(buffer);
     }
     
     public ByteBuffer getBuffer() {

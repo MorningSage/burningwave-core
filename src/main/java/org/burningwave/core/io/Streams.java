@@ -66,10 +66,6 @@ public interface Streams {
 
 	public void copy(InputStream input, OutputStream output);
 
-	public byte[] toByteArray(ByteBuffer byteBuffer);
-
-	public ByteBuffer shareContent(ByteBuffer byteBuffer);
-
 	public FileSystemItem store(String fileAbsolutePath, byte[] bytes);
 
 	public FileSystemItem store(String fileAbsolutePath, ByteBuffer bytes);

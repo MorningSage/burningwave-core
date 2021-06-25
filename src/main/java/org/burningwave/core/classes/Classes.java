@@ -28,6 +28,7 @@
  */
 package org.burningwave.core.classes;
 
+import static org.burningwave.core.assembler.StaticComponentContainer.ByteBufferHandler;
 import static org.burningwave.core.assembler.StaticComponentContainer.Cache;
 import static org.burningwave.core.assembler.StaticComponentContainer.Classes;
 import static org.burningwave.core.assembler.StaticComponentContainer.Fields;
@@ -683,7 +684,7 @@ public class Classes implements MembersRetriever {
 				try {
 					return (Class<T>)classLoader.loadClass(className);
 				} catch (ClassNotFoundException | NoClassDefFoundError exc) {
-					Class<T> cls = defineOrLoad(classLoader, defineClassMethod, className, Streams.shareContent(Classes.getByteCode(toLoad)));
+					Class<T> cls = defineOrLoad(classLoader, defineClassMethod, className, ByteBufferHandler.shareContent(Classes.getByteCode(toLoad)));
 	    			definePackageFor(cls, classLoader, definePackageMethod);
 	    			return cls;
 				}

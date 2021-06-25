@@ -28,6 +28,7 @@
  */
 package org.burningwave.core.io;
 
+import static org.burningwave.core.assembler.StaticComponentContainer.ByteBufferHandler;
 import static org.burningwave.core.assembler.StaticComponentContainer.Cache;
 import static org.burningwave.core.assembler.StaticComponentContainer.Streams;
 import static org.burningwave.core.assembler.StaticComponentContainer.Synchronizer;
@@ -271,7 +272,7 @@ public interface IterableZipContainer extends Closeable, ManagedLogger {
 		public ByteBuffer toByteBuffer();
 		
 		default public byte[] toByteArray() {
-			return Streams.toByteArray(toByteBuffer());
+			return ByteBufferHandler.toByteArray(toByteBuffer());
 		}
 		
 		public boolean isArchive();

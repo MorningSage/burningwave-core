@@ -55,7 +55,7 @@ public class JavaClass implements Closeable {
 	}
 	
 	JavaClass(ByteBuffer byteCode) {
-		this(Classes.retrieveName(byteCode), Streams.shareContent(byteCode));
+		this(Classes.retrieveName(byteCode), ByteBufferHandler.shareContent(byteCode));
 	}
 	
 	public static JavaClass create(Class<?> cls) {
@@ -150,7 +150,7 @@ public class JavaClass implements Closeable {
 	}
 	
 	public byte[] toByteArray() {
-		return Streams.toByteArray(getByteCode());
+		return ByteBufferHandler.toByteArray(getByteCode());
 	}
 	
 	public FileSystemItem storeToClassPath(String classPathFolder) {

@@ -114,7 +114,7 @@ class ZipInputStream extends java.util.zip.ZipInputStream implements IterableZip
 	}
 
 	public byte[] toByteArray() {
-		return Streams.toByteArray(toByteBuffer());
+		return ByteBufferHandler.toByteArray(toByteBuffer());
 	}
 
 	@Override
@@ -351,7 +351,7 @@ class ZipInputStream extends java.util.zip.ZipInputStream implements IterableZip
 							entry.getName().equals(getName()), zEntry -> 
 							zEntry.toByteBuffer(), zEntry -> true
 						);
-						return Streams.shareContent(content);
+						return ByteBufferHandler.shareContent(content);
 					}
 				});			
 			}

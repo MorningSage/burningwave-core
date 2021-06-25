@@ -30,7 +30,6 @@ package org.burningwave.core.io;
 
 
 import static org.burningwave.core.assembler.StaticComponentContainer.ByteBufferHandler;
-import static org.burningwave.core.assembler.StaticComponentContainer.Streams;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -96,11 +95,11 @@ public class ByteBufferOutputStream extends OutputStream {
     }
     
 	public ByteBuffer toByteBuffer() {
-		return Streams.shareContent(buffer);
+		return ByteBufferHandler.shareContent(buffer);
 	}
 
 	public byte[] toByteArray() {
-		return Streams.toByteArray(toByteBuffer());
+		return ByteBufferHandler.toByteArray(toByteBuffer());
 	}
     
     @Override

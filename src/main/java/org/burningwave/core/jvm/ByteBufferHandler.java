@@ -196,10 +196,25 @@ public class ByteBufferHandler implements Component {
 		return put(byteBuffer, heapBuffer, bytesToWrite, 0);
 	}
 	
+	public ByteBuffer shareContent(ByteBuffer byteBuffer) {
+		ByteBuffer duplicated = duplicate(byteBuffer);
+		if (position(byteBuffer) > 0) {
+			flip(duplicated);
+		}		
+		return duplicated;
+	}
+	
 	public ByteBuffer put(ByteBuffer byteBuffer, byte[] heapBuffer, int bytesToWrite, int initialPosition) {
 		byteBuffer = ensureRemaining(byteBuffer, bytesToWrite, initialPosition);
 		byteBuffer.put(heapBuffer, 0, bytesToWrite);
 		return byteBuffer;
+	}
+	
+	public byte[] toByteArray(ByteBuffer byteBuffer) {
+    	byteBuffer = shareContent(byteBuffer);
+    	byte[] result = new byte[limit(byteBuffer)];
+    	byteBuffer.get(result, 0, result.length);
+        return result;
 	}
 	
     public ByteBuffer ensureRemaining(ByteBuffer byteBuffer, int requiredBytes) {

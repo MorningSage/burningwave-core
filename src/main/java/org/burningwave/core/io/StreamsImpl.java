@@ -104,7 +104,7 @@ class StreamsImpl implements Streams, Identifiable, Properties.Listener, Managed
 			while (-1 != (bytesRead = inputStream.read(heapBuffer))) {
 				byteBuffer = ByteBufferHandler.put(byteBuffer, heapBuffer, bytesRead);
 			}
-			return shareContent(byteBuffer);
+			return ByteBufferHandler.shareContent(byteBuffer);
 		} catch (Throwable exc) {
 			return Throwables.throwException(exc);
 		}
@@ -146,30 +146,13 @@ class StreamsImpl implements Streams, Identifiable, Properties.Listener, Managed
 	}
 	
 	@Override
-	public byte[] toByteArray(ByteBuffer byteBuffer) {
-    	byteBuffer = shareContent(byteBuffer);
-    	byte[] result = new byte[ByteBufferHandler.limit(byteBuffer)];
-    	byteBuffer.get(result, 0, result.length);
-        return result;
-    }
-
-	@Override
-	public ByteBuffer shareContent(ByteBuffer byteBuffer) {
-		ByteBuffer duplicated = ByteBufferHandler.duplicate(byteBuffer);
-		if (ByteBufferHandler.position(byteBuffer) > 0) {
-			ByteBufferHandler.flip(duplicated);
-		}		
-		return duplicated;
-	}
-	
-	@Override
 	public FileSystemItem store(String fileAbsolutePath, byte[] bytes) {
 		return store(fileAbsolutePath, ByteBufferHandler.allocate(bytes.length).put(bytes, 0, bytes.length));
 	}
 	
 	@Override
 	public FileSystemItem store(String fileAbsolutePath, ByteBuffer bytes) {
-		ByteBuffer content = shareContent(bytes);
+		ByteBuffer content = ByteBufferHandler.shareContent(bytes);
 		File file = new File(fileAbsolutePath);
 		Synchronizer.execute(fileAbsolutePath, () -> {
 			if (!file.exists()) {
