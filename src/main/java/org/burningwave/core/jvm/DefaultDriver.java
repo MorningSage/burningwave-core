@@ -85,13 +85,14 @@ public class DefaultDriver extends Driver {
 	}
 	
 	protected Initializer retrieveInitializer() {
-		return (JVMInfo.getVersion() > 8 ?
-			JVMInfo.getVersion() > 13 ?
+		return 
+			(JVMInfo.getVersion() > 8 ?
+				JVMInfo.getVersion() > 13 ?
 					JVMInfo.getVersion() > 16 ?
 						new Initializer.ForJava17(this):
-					new Initializer.ForJava14(this):
-				new Initializer.ForJava9(this):
-			new Initializer.ForJava8(this));
+						new Initializer.ForJava14(this):
+					new Initializer.ForJava9(this):
+				new Initializer.ForJava8(this));
 	}
 	
 	@Override
@@ -724,6 +725,7 @@ public class DefaultDriver extends Driver {
 			@Override
 			protected void initMainConsulter() {
 				super.initMainConsulter();
+				driver.unsafe.putInt(mainConsulter, 12L, -1);
 			}
 			
 			@Override
