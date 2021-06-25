@@ -1,7 +1,6 @@
 package org.burningwave.core.jvm;
 
 import static org.burningwave.core.assembler.StaticComponentContainer.BackgroundExecutor;
-import static org.burningwave.core.assembler.StaticComponentContainer.ByteBufferHandler;
 import static org.burningwave.core.assembler.StaticComponentContainer.Fields;
 import static org.burningwave.core.assembler.StaticComponentContainer.IterableObjectHelper;
 import static org.burningwave.core.assembler.StaticComponentContainer.LowLevelObjectsHandler;
@@ -209,7 +208,7 @@ public class ByteBufferHandler implements Component {
 	
     public ByteBuffer ensureRemaining(ByteBuffer byteBuffer, int requiredBytes, int initialPosition) {
         if (requiredBytes > remaining(byteBuffer)) {
-        	return ByteBufferHandler.expandBuffer(byteBuffer, requiredBytes, initialPosition);
+        	return expandBuffer(byteBuffer, requiredBytes, initialPosition);
         }
         return byteBuffer;
     }  
