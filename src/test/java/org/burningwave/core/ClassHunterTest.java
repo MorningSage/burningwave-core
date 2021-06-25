@@ -1349,7 +1349,6 @@ public class ClassHunterTest extends BaseTest {
 	public void findByPackageNameTestOne() {
 		testNotEmpty(() -> {
 			ComponentSupplier componentSupplier = getComponentSupplier();
-	        PathHelper pathHelper = componentSupplier.getPathHelper();
 	        ClassHunter classHunter = componentSupplier.getClassHunter();
 	        
 	        CacheableSearchConfig searchConfig = SearchConfig.forPaths(
