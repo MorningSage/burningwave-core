@@ -725,7 +725,6 @@ public class DefaultDriver extends Driver {
 			@Override
 			protected void initMainConsulter() {
 				super.initMainConsulter();
-				driver.unsafe.putInt(mainConsulter, 12L, -1);
 			}
 			
 			@Override
