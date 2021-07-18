@@ -114,7 +114,7 @@ public interface SourceGenerator extends Serializable {
 					value += separator;
 				}
 			}
-			return value;
+			return value.replace(" ;", ";");
 		}		
 	}
 }

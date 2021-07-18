@@ -185,15 +185,15 @@ public class FunctionSourceGenerator extends SourceGenerator.Abst {
 	private String getParametersCode() {
 		String paramsCode = "(";
 		if (parameters != null) {
-			paramsCode += "\n";
+			//paramsCode += "\n";
 			Iterator<VariableSourceGenerator> paramsIterator =  parameters.iterator();
 			while (paramsIterator.hasNext()) {
 				VariableSourceGenerator param = paramsIterator.next();
-				paramsCode += "\t" + param.make().replace("\n", "\n\t");
+				paramsCode += /*"\t" +*/ param.make().replace("\n", ""/*"\n\t"*/);
 				if (paramsIterator.hasNext()) {
-					paramsCode += COMMA + "\n";
-				} else {
-					paramsCode += "\n";
+					paramsCode += COMMA + EMPTY_SPACE/*"\n"*/;
+				//} else {
+				//	paramsCode += "\n";
 				}
 			}
 		}
